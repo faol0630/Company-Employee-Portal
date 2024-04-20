@@ -3,3 +3,7 @@
 1) crear paquete auth
 
 2) dentro de auth, crear la class SpringSecurityConfig
+
+3) dentro de auth crear el paquete filters
+
+4) dentro de filters crear la class JwtAuthFilter
