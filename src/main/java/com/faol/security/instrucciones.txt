@@ -1,0 +1,5 @@
+
+
+1) crear paquete auth
+
+2) dentro de auth, crear la class SpringSecurityConfig
