@@ -29,8 +29,10 @@ public class Employee {
     @NotNull(message = "email must not be null")
     private String email;
 
-    @NotNull(message = "age must not be null")
-    @Digits(integer = Integer.MAX_VALUE, fraction = 0, message = "invalid age format")
-    private Integer age;
+    @NotNull(message = "username must not be null")
+    private String username;
+
+    @NotNull(message = "password must not be null")
+    private String password;
 
 }

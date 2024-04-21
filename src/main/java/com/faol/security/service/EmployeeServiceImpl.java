@@ -39,7 +39,8 @@ public class EmployeeServiceImpl implements EmployeeServiceInt{
                .name(employee.getName())
                .lastname(employee.getLastname())
                .email(employee.getEmail())
-               .age(employee.getAge())
+               .username(employee.getUsername())
+               .password(employee.getPassword())
                .build();
 
        employeeRepo.save(updatedEmployee);
