@@ -1,18 +1,17 @@
 package com.faol.security.auth;
 
 import com.faol.security.auth.filters.JwtAuthFilter;
+import com.faol.security.auth.filters.JwtValidationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.web.WebSecurityConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -41,7 +40,7 @@ public class SpringSecurityConfig {
 
         httpSecurity.authorizeHttpRequests(authorizeRequest -> {
                             authorizeRequest
-                                    //.requestMatchers(HttpMethod.POST, "/employee/new")
+                                    //.requestMatchers(HttpMethod.GET, "/employee/get_employee/{id}")
                                     //.permitAll()
                                     .requestMatchers(HttpMethod.GET, "/employee/get_all")
                                     .permitAll()
@@ -49,6 +48,7 @@ public class SpringSecurityConfig {
                         }
                 )
                 .addFilter(new JwtAuthFilter(authenticationConfiguration.getAuthenticationManager()))//despues de haber creado JwtAuthFilter
+                .addFilter(new JwtValidationFilter(authenticationConfiguration.getAuthenticationManager()))//despues de haber creado JwtValidationFilter
                 .csrf(config -> config.disable())
                 .sessionManagement(managment -> managment.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 

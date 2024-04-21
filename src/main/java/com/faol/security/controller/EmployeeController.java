@@ -36,8 +36,8 @@ public class EmployeeController {
         }
     }
 
-    @GetMapping("get_employee/{id}")
-    public ResponseEntity<?> getEmployeeById(Long id) {
+    @GetMapping("/get_employee/{id}")
+    public ResponseEntity<?> getEmployeeById(@PathVariable Long id) {
 
         HashMap<String, Object> response = new HashMap<>();
         Optional<Employee> employee = service.getEmployeeById(id);

@@ -20,6 +20,8 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.faol.security.auth.TokenJwtConfig.*;
+
 public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
 
     //2)
@@ -68,10 +70,10 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
         //5) logica de este metodo:
         String username = ((User) authResult.getPrincipal()).getUsername();
         //token provisional(será reemplazado por un token JWT):
-        String originalInput = "token_creado_por_usuario." + username;
+        String originalInput = SECRET_KEY + ":" + username;
         String token = Base64.getEncoder().encodeToString(originalInput.getBytes());
 
-        response.addHeader("Authorization", "Bearer " + token);
+        response.addHeader(HEADER_AUTH, PREFIX_TOKEN + token);
 
         Map<String, Object> body = new HashMap<>();
         body.put("token", token);
@@ -80,7 +82,7 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
         //convertir Map en un Json:
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
         response.setStatus(200);
-        response.setContentType("application/json");
+        response.setContentType(CONTENT_TYPE);
     }
 
     @Override
@@ -94,6 +96,6 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
         //convertir Map en un Json:
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
         response.setStatus(200);
-        response.setContentType("application/json");
+        response.setContentType(CONTENT_TYPE);
     }
 }

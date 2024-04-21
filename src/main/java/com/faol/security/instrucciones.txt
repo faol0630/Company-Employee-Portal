@@ -6,45 +6,62 @@
 
 3) dentro de auth crear el paquete filters
 
-4) dentro de filters crear la class JwtAuthFilter
+4) dentro de auth creamos la class TokenJwtConfig, que va a contener constantes que vamos a usar en las
+    class JwtAuthFilter(se crea en el prox paso) y JwtValidationFilter(se crea mas adelante). esta class
+    tiene esta forma:
 
-5) en la class SpringSecurityConfig declaramos el siguiente atributo:
+    public class TokenJwtConfig {
+
+        //constantes usadas solo en las clases JwtValidationFilter y JwtAuthFilter:
+        public final static String SECRET_KEY =  "token_creado_por_usuario";
+        public final static String PREFIX_TOKEN =  "Bearer ";
+        public final static String HEADER_AUTH =  "Authorization";
+        public final static String CONTENT_TYPE =  "application/json";
+
+
+    }
+
+
+
+5) dentro de filters crear la class JwtAuthFilter
+
+6) en la class SpringSecurityConfig declaramos el siguiente atributo:
 
     @Autowired
     private AuthenticationConfiguration authenticationConfiguration;
 
-6) en la misma class SpringSecurityConfig dentro del metodo filterChain, agregar la siguiente linea:
+7) en la misma class SpringSecurityConfig dentro del metodo filterChain, agregar la siguiente linea:
 
     .addFilter(new JwtAuthFilter(authenticationConfiguration.getAuthenticationManager()))
 
-7) tambien en la class SpringSecurityConfig agregar el siguiente metodo para poder probar nuestra app:
+8) tambien en la class SpringSecurityConfig agregar el siguiente metodo para poder probar nuestra app:
 
         @Bean
         PasswordEncoder passwordEncoder(){
             return NoOpPasswordEncoder.getInstance();
         }
 
-8) dentro de service o dentro de auth crear la class JpaUserDetailsService
+9) dentro de service o dentro de auth crear la class JpaUserDetailsService
 
 En este punto hacemos una prueba con postman en donde en el endpoint localhost:8080/login
 pasamos como user : "admin" y password : "12345" y esto nos debe devolver el token provisional que hemos creado.
 Este token será reemplazado mas adelante por un jwt.
 
-9) implementacion de BCryptPasswordEncoder: en la class JpaUserDetailsService dentro del metodo loadUserByUsername
+10) implementacion de BCryptPasswordEncoder: en la class JpaUserDetailsService dentro del metodo loadUserByUsername
     el password que tenemos como 12345 lo reemplazamos con
     "$2a$10$DOMDxjYyfZ/e7RcBfUpzqeaCs8pLgcizuiQWXPkU35nOhZlFcE9MS"
 
     esto es un password del tipo BCryptPasswordEncoder que estamos generando manualmente mientras terminamos
     la implementacion.
 
-10) en la class SpringSecurityConfig creamos el siguiente metodo:
+11) en la class SpringSecurityConfig creamos el siguiente metodo:
 
         @Bean
         AuthenticationManager authenticationManager() throws Exception{
             return authenticationConfiguration.getAuthenticationManager();
         }
 
-11) en el metodo passwordEncoder de la misma class SpringSecurityConfig cambiamos el contenido reemplazando
+12) en el metodo passwordEncoder de la misma class SpringSecurityConfig cambiamos el contenido reemplazando
     passwordEncoder por BCryptPasswordEncoder():
 
         @Bean
@@ -53,4 +70,12 @@ Este token será reemplazado mas adelante por un jwt.
         }
 
 En este punto volvemos a probar la app.Deberia funcionar igual que la prueba anterior.
+
+13) dentro del paquete auth.filters creamos la class JwtValidationFilter.
+
+14) en la class SpringSecurityConfig agregamos el filter de la recien creada class JwtValidationFilter:
+
+    .addFilter(new JwtValidationFilter(authenticationConfiguration.getAuthenticationManager()))
+
+
 
