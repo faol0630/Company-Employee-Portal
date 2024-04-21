@@ -28,7 +28,7 @@ public class JpaUserDetailsService implements UserDetailsService {
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
 
-        return new User(
+        return new User(//este User viene con spring framework.No es un entity que hayamos creado.
                 username,
                 "$2a$10$DOMDxjYyfZ/e7RcBfUpzqeaCs8pLgcizuiQWXPkU35nOhZlFcE9MS",
                 true,

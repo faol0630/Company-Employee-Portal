@@ -30,7 +30,7 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
         this.authenticationManager = authenticationManager;
     }
 
-    //1) click derecho, generate, override, generar los 3 metodos siguientes:
+    //1) click derecho, generate, override, generar los 3 metodos siguientes y dejarlos sin contenido:
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         //vaciar el contenido original
@@ -45,6 +45,7 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
             username = employee.getUsername();
             password = employee.getPassword();
 
+            //para ver en consola.En produccion comentar o eliminar ya que muestra password sin encriptar.
             logger.info("Username desde request InputStream (raw) " + username);
             logger.info("Password desde request InputStream (raw) " + password);
 

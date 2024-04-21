@@ -8,18 +8,49 @@
 
 4) dentro de filters crear la class JwtAuthFilter
 
-5) en la class SpringSecurityConfig dentro del metodo filterChain, agregar la siguiente linea:
+5) en la class SpringSecurityConfig declaramos el siguiente atributo:
+
+    @Autowired
+    private AuthenticationConfiguration authenticationConfiguration;
+
+6) en la misma class SpringSecurityConfig dentro del metodo filterChain, agregar la siguiente linea:
 
     .addFilter(new JwtAuthFilter(authenticationConfiguration.getAuthenticationManager()))
 
-6) tambien en la class SpringSecurityConfig agregar el siguiente metodo para poder probar nuestra app:
+7) tambien en la class SpringSecurityConfig agregar el siguiente metodo para poder probar nuestra app:
 
         @Bean
         PasswordEncoder passwordEncoder(){
             return NoOpPasswordEncoder.getInstance();
         }
 
-7) dentro de service o dentro de auth crear la class JpaUserDetailsService
+8) dentro de service o dentro de auth crear la class JpaUserDetailsService
 
-8) implementacion de BCryptPasswordEncoder: en la class JpaUserDetailsService el password que teniamos con 12345 lo
-    reemplazamos con "$2a$10$DOMDxjYyfZ/e7RcBfUpzqeaCs8pLgcizuiQWXPkU35nOhZlFcE9MS"
+En este punto hacemos una prueba con postman en donde en el endpoint localhost:8080/login
+pasamos como user : "admin" y password : "12345" y esto nos debe devolver el token provisional que hemos creado.
+Este token será reemplazado mas adelante por un jwt.
+
+9) implementacion de BCryptPasswordEncoder: en la class JpaUserDetailsService dentro del metodo loadUserByUsername
+    el password que tenemos como 12345 lo reemplazamos con
+    "$2a$10$DOMDxjYyfZ/e7RcBfUpzqeaCs8pLgcizuiQWXPkU35nOhZlFcE9MS"
+
+    esto es un password del tipo BCryptPasswordEncoder que estamos generando manualmente mientras terminamos
+    la implementacion.
+
+10) en la class SpringSecurityConfig creamos el siguiente metodo:
+
+        @Bean
+        AuthenticationManager authenticationManager() throws Exception{
+            return authenticationConfiguration.getAuthenticationManager();
+        }
+
+11) en el metodo passwordEncoder de la misma class SpringSecurityConfig cambiamos el contenido reemplazando
+    passwordEncoder por BCryptPasswordEncoder():
+
+        @Bean
+        PasswordEncoder passwordEncoder(){
+            return new BCryptPasswordEncoder();
+        }
+
+En este punto volvemos a probar la app.Deberia funcionar igual que la prueba anterior.
+
