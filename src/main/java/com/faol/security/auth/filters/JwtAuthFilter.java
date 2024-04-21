@@ -75,7 +75,7 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
         Map<String, Object> body = new HashMap<>();
         body.put("token", token);
         body.put("username", username);
-        body.put("message", String.format("Hello %s, successful login"));
+        body.put("message", String.format("Hello %s, successful login", username));
         //convertir Map en un Json:
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
         response.setStatus(200);

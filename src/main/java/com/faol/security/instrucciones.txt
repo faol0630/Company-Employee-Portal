@@ -7,3 +7,19 @@
 3) dentro de auth crear el paquete filters
 
 4) dentro de filters crear la class JwtAuthFilter
+
+5) en la class SpringSecurityConfig dentro del metodo filterChain, agregar la siguiente linea:
+
+    .addFilter(new JwtAuthFilter(authenticationConfiguration.getAuthenticationManager()))
+
+6) tambien en la class SpringSecurityConfig agregar el siguiente metodo para poder probar nuestra app:
+
+        @Bean
+        PasswordEncoder passwordEncoder(){
+            return NoOpPasswordEncoder.getInstance();
+        }
+
+7) dentro de service o dentro de auth crear la class JpaUserDetailsService
+
+8) implementacion de BCryptPasswordEncoder: en la class JpaUserDetailsService el password que teniamos con 12345 lo
+    reemplazamos con "$2a$10$DOMDxjYyfZ/e7RcBfUpzqeaCs8pLgcizuiQWXPkU35nOhZlFcE9MS"
