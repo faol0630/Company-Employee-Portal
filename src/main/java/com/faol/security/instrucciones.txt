@@ -1,12 +1,15 @@
 
+1) En EmployeeRepository agregamos el siguiente metodo:
 
-1) crear paquete auth
+    Optional<Employee> findByUsername(String username);
 
-2) dentro de auth, crear la class SpringSecurityConfig
+2) crear paquete auth
 
-3) dentro de auth crear el paquete filters
+3) dentro de auth, crear la class SpringSecurityConfig
 
-4) dentro de auth creamos la class TokenJwtConfig, que va a contener constantes que vamos a usar en las
+4) dentro de auth crear el paquete filters
+
+5) dentro de auth creamos la class TokenJwtConfig, que va a contener constantes que vamos a usar en las
     class JwtAuthFilter(se crea en el prox paso) y JwtValidationFilter(se crea mas adelante). esta class
     tiene esta forma:
 
@@ -23,45 +26,45 @@
 
 
 
-5) dentro de filters crear la class JwtAuthFilter
+6) dentro de filters crear la class JwtAuthFilter
 
-6) en la class SpringSecurityConfig declaramos el siguiente atributo:
+7) en la class SpringSecurityConfig declaramos el siguiente atributo:
 
     @Autowired
     private AuthenticationConfiguration authenticationConfiguration;
 
-7) en la misma class SpringSecurityConfig dentro del metodo filterChain, agregar la siguiente linea:
+8) en la misma class SpringSecurityConfig dentro del metodo filterChain, agregar la siguiente linea:
 
     .addFilter(new JwtAuthFilter(authenticationConfiguration.getAuthenticationManager()))
 
-8) tambien en la class SpringSecurityConfig agregar el siguiente metodo para poder probar nuestra app:
+9) tambien en la class SpringSecurityConfig agregar el siguiente metodo para poder probar nuestra app:
 
         @Bean
         PasswordEncoder passwordEncoder(){
             return NoOpPasswordEncoder.getInstance();
         }
 
-9) dentro de service o dentro de auth crear la class JpaUserDetailsService
+10) dentro de service o dentro de auth crear la class JpaUserDetailsService
 
 En este punto hacemos una prueba con postman en donde en el endpoint localhost:8080/login
 pasamos como user : "admin" y password : "12345" y esto nos debe devolver el token provisional que hemos creado.
 Este token será reemplazado mas adelante por un jwt.
 
-10) implementacion de BCryptPasswordEncoder: en la class JpaUserDetailsService dentro del metodo loadUserByUsername
+11) implementacion de BCryptPasswordEncoder: en la class JpaUserDetailsService dentro del metodo loadUserByUsername
     el password que tenemos como 12345 lo reemplazamos con
     "$2a$10$DOMDxjYyfZ/e7RcBfUpzqeaCs8pLgcizuiQWXPkU35nOhZlFcE9MS"
 
     esto es un password del tipo BCryptPasswordEncoder que estamos generando manualmente mientras terminamos
     la implementacion.
 
-11) en la class SpringSecurityConfig creamos el siguiente metodo:
+12) en la class SpringSecurityConfig creamos el siguiente metodo:
 
         @Bean
         AuthenticationManager authenticationManager() throws Exception{
             return authenticationConfiguration.getAuthenticationManager();
         }
 
-12) en el metodo passwordEncoder de la misma class SpringSecurityConfig cambiamos el contenido reemplazando
+13) en el metodo passwordEncoder de la misma class SpringSecurityConfig cambiamos el contenido reemplazando
     passwordEncoder por BCryptPasswordEncoder():
 
         @Bean
@@ -71,11 +74,93 @@ Este token será reemplazado mas adelante por un jwt.
 
 En este punto volvemos a probar la app.Deberia funcionar igual que la prueba anterior.
 
-13) dentro del paquete auth.filters creamos la class JwtValidationFilter.
+14) dentro del paquete auth.filters creamos la class JwtValidationFilter.
 
-14) en la class SpringSecurityConfig agregamos el filter de la recien creada class JwtValidationFilter:
+15) en la class SpringSecurityConfig agregamos el filter de la recien creada class JwtValidationFilter:
 
     .addFilter(new JwtValidationFilter(authenticationConfiguration.getAuthenticationManager()))
+
+
+En este punto se puede hacer una prueba pasando el token que resulta de ejecutar el POST:
+
+    POST http://localhost:8080/login en donde en el body pasamos:
+
+    {
+      "username": "admin",
+      "password": "12345"
+    }
+
+    esto devuelve algo como :
+
+    {
+      "message": "Hello admin, successful login",
+      "token": "dG9rZW5fY3JlYWRvX3Bvcl91c3VhcmlvOmFkbWlu",
+      "username": "admin"
+    }
+
+    con el token de la respuesta anterior pasandolo via Auth Bearer , ejecutamos los demas endpoints.si
+    todo ha sido bien hecho, no se deberia tener ningun problema.
+
+16) en la class ServiceImpl declaramos Password encoder :
+
+        @Autowired
+        PasswordEncoder passwordEncoder;
+
+    en el metodo save o createNewEmployee, encriptamos el password haciendo algo como :
+
+
+        @Override
+        public void newEmployee(Employee employee){
+            String passwordBCrypt = passwordEncoder.encode(employee.getPassword());
+            employee.setPassword(passwordBCrypt);
+            employeeRepo.save(employee);
+        }
+
+    tanto el password sin encriptar como el password encriptado son String , asi que esto no genera
+    ningun problema.
+
+17) en la base de datos (mysql en este caso) debemos borrar todas las tuplas y volver a crearlas pero
+    esta vez ya estaran con el password encriptado.
+
+    En este se puede volver a probar la app , creando nuevos employee y si todo está bien , deben crearse
+    con el password debidamente encriptado.Todavia seguimos usando el token que obtenemos con username
+    admin y password 12345 ya que esa parte aun no se ha configurado.
+
+
+
+18) En JpaUserDetailsService , debido a que es un @Service , inyectamos el repository:
+
+        @Autowired
+        private EmployeeRepo employeeRepo;
+
+        reemplazamos la logica del metodo loadUserByUsername por :
+
+                Optional<Employee> employeeOptional = employeeRepo.findByUsername(username);
+
+                if (!employeeOptional.isPresent()){
+                    throw new UsernameNotFoundException(String.format("Username %s not found", username));
+                }
+
+                Employee employee = employeeOptional.orElseThrow();
+
+                List<GrantedAuthority> authorities = new ArrayList<>();
+                authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+
+                return new User(//este User viene con spring framework.No es un entity que hayamos creado.
+                        employee.getUsername(),
+                        employee.getPassword(),
+                        true,
+                        true,
+                        true,
+                        true,
+                        authorities
+                );
+
+        con esta logica, los password creados con los Employees van a ser los password para hacer login.
+
+19)
+
+
 
 
 

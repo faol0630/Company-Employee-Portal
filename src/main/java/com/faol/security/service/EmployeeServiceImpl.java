@@ -4,6 +4,7 @@ package com.faol.security.service;
 import com.faol.security.entity.Employee;
 import com.faol.security.repository.EmployeeRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.swing.text.html.Option;
@@ -15,6 +16,9 @@ public class EmployeeServiceImpl implements EmployeeServiceInt{
 
     @Autowired
     EmployeeRepo employeeRepo;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     @Override
     public List<Employee> getAllEmployees(){
@@ -30,6 +34,8 @@ public class EmployeeServiceImpl implements EmployeeServiceInt{
 
     @Override
     public void newEmployee(Employee employee){
+        String passwordBCrypt = passwordEncoder.encode(employee.getPassword());
+        employee.setPassword(passwordBCrypt);
         employeeRepo.save(employee);
     }
 
@@ -43,7 +49,7 @@ public class EmployeeServiceImpl implements EmployeeServiceInt{
                .lastname(employee.getLastname())
                .email(employee.getEmail())
                .username(employee.getUsername())
-               .password(employee.getPassword())
+               .password(passwordEncoder.encode(employee.getPassword()))
                .build();
 
        employeeRepo.save(updatedEmployee);
