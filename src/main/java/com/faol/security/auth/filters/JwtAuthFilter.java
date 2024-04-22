@@ -4,6 +4,7 @@ import com.faol.security.entity.Employee;
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,7 +17,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
-import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,11 +52,11 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
             logger.info("Username desde request InputStream (raw) " + username);
             logger.info("Password desde request InputStream (raw) " + password);
 
-        }catch (StreamReadException e){
+        } catch (StreamReadException e) {
             e.printStackTrace();
-        }catch (DatabindException e){
+        } catch (DatabindException e) {
             e.printStackTrace();
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -69,9 +70,18 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
 
         //5) logica de este metodo:
         String username = ((User) authResult.getPrincipal()).getUsername();
+
         //token provisional(será reemplazado por un token JWT):
-        String originalInput = SECRET_KEY + ":" + username;
-        String token = Base64.getEncoder().encodeToString(originalInput.getBytes());
+        /*String originalInput = SECRET_KEY + ":" + username;
+        String token = Base64.getEncoder().encodeToString(originalInput.getBytes());*/
+
+        //JWT token:
+        String token = Jwts.builder()
+                .setSubject(username)
+                .signWith(SECRET_KEY)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 3600000))
+                .compact();
 
         response.addHeader(HEADER_AUTH, PREFIX_TOKEN + token);
 

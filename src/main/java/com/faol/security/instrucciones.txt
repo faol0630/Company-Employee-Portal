@@ -1,4 +1,20 @@
 
+Antes de empezar en pom.xml debe estar la dependency de spring security:
+
+    <dependency>
+    			<groupId>org.springframework.boot</groupId>
+    			<artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+
+    debemos tener un Entity que tenga un atributo username y un atributo password.
+
+    En el atributo password usamos PasswordEncoder para encriptarlo, cosa de que
+    cuando se creen Objetos de ese Entity ya esten con el password encriptado.
+    (ejecutar paso 16).
+
+    Tambien podriamos ejecutar el paso 19 agregar dependencies de JWT.
+
+
 1) En EmployeeRepository agregamos el siguiente metodo:
 
     Optional<Employee> findByUsername(String username);
@@ -24,8 +40,6 @@
 
     }
 
-
-
 6) dentro de filters crear la class JwtAuthFilter
 
 7) en la class SpringSecurityConfig declaramos el siguiente atributo:
@@ -45,6 +59,12 @@
         }
 
 10) dentro de service o dentro de auth crear la class JpaUserDetailsService
+
+        Cuando se cree la class JpaUserDetailsService
+        del paso 10, se puede crear con la logica que va a llevar al final (paso 18),
+        lo que hace innecesario la ejecucion del paso11 y el comentario del paso 10.
+        Hacemos la prueba directo con el username y el password de cada entity sin tener
+        que usar admin y 12345.
 
 En este punto hacemos una prueba con postman en donde en el endpoint localhost:8080/login
 pasamos como user : "admin" y password : "12345" y esto nos debe devolver el token provisional que hemos creado.
@@ -158,7 +178,87 @@ En este punto se puede hacer una prueba pasando el token que resulta de ejecutar
 
         con esta logica, los password creados con los Employees van a ser los password para hacer login.
 
-19)
+19) Empezamos con JWT. agregamos 3 dependencies a pom.xml :
+
+            <dependency>
+    			<groupId>io.jsonwebtoken</groupId>
+    			<artifactId>jjwt-api</artifactId>
+    			<version>0.11.5</version>
+    		</dependency>
+
+    		<dependency>
+    			<groupId>io.jsonwebtoken</groupId>
+    			<artifactId>jjwt-impl</artifactId>
+    			<version>0.11.5</version>
+    			<scope>runtime</scope>
+    		</dependency>
+
+    		<dependency>
+    			<groupId>io.jsonwebtoken</groupId>
+    			<artifactId>jjwt-jackson</artifactId>
+    			<version>0.11.5</version>
+    			<scope>runtime</scope>
+    		</dependency>
+
+20) en la class TokenJwtConfig modificamos la constante SECRET_KEY:
+
+    public final static Key SECRET_KEY =  Keys.secretKeyFor(SignatureAlgorithm.HS256);
+
+21) en la class JwtAuthFilter dentro del metodo successfulAuthentication, reemplazamos el token
+provisional que habiamos creado con un token JWT :
+
+    String token = Jwts.builder()
+                    .setSubject(username)
+                    .signWith(SECRET_KEY)
+                    .setIssuedAt(new Date())
+                    .setExpiration(new Date(System.currentTimeMillis() + 3600000))
+                    .compact();
+
+22) en la class JwtValidationFilter dentro del metodo doFilterInternal,
+    el if else lo convertimos en un try catch.quitamos las 5 lineas anteriores a dicho try catch.
+    el codigo dentro del metodo doFilterInternal queda asi :
+
+
+            String header = request.getHeader(HEADER_AUTH);
+
+            if (header == null || !header.startsWith(PREFIX_TOKEN)){
+                chain.doFilter(request, response);
+                return;
+            }
+
+            String token = header.replace(PREFIX_TOKEN, "");
+
+            try{
+                //validando el token:
+                Claims claims = Jwts.parserBuilder().setSigningKey(SECRET_KEY)
+                        .build()
+                        .parseClaimsJws(token)
+                        .getBody();
+
+                String username = claims.getSubject();
+
+                List<GrantedAuthority> authorities = new ArrayList<>();
+                authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+
+                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, null, authorities);
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken); //autenticacion
+                chain.doFilter(request,response);
+
+            }catch (JwtException e){
+
+                Map<String, String> body = new HashMap<>();//string string porque solo va a pasar mensajes de error
+                body.put("error", e.getMessage());
+                body.put("message", "Invalid jwt token");
+                response.getWriter().write(new ObjectMapper().writeValueAsString(body));
+                response.setStatus(403);
+                response.setContentType(CONTENT_TYPE);
+
+            }
+
+23)
+
+
+
 
 
 

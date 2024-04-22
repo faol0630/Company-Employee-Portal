@@ -1,6 +1,9 @@
 package com.faol.security.auth.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,19 +40,16 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
         }
 
         String token = header.replace(PREFIX_TOKEN, "");
-        byte[] tokenDecodedByte = Base64.getDecoder().decode(token);//convierte a bytes
-        String tokenDecodedString = new String(tokenDecodedByte);//convierte a String
 
-        //con el punto debe ir doble backslash \\ debido a que el punto es un caracter reservado
-        //en una expresion regular que representa cualquier caracter.
-        //String[] tokenArr = tokenDecodedString.split("\\.");//convierte a array de String y separa donde encuentra un punto.
-        String[] tokenArr = tokenDecodedString.split(":");//convierte a array de String y separa donde encuentra un punto.
-        String secretPhrase = tokenArr[0];
-        String username = tokenArr[1];
+        try{
 
-        if (SECRET_KEY.equals(secretPhrase)){
+            Claims claims = Jwts.parserBuilder().setSigningKey(SECRET_KEY)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
 
-            //aca se necesitan roles y username
+            String username = claims.getSubject();
+
             List<GrantedAuthority> authorities = new ArrayList<>();
             authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
 
@@ -57,9 +57,10 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
             SecurityContextHolder.getContext().setAuthentication(authenticationToken); //autenticacion
             chain.doFilter(request,response);
 
-        }else{
+        }catch (JwtException e){
 
-            Map<String, String> body = new HashMap<>();//string string porque solo va a pasar un mensaje de error
+            Map<String, String> body = new HashMap<>();//string string porque solo va a pasar mensajes de error
+            body.put("error", e.getMessage());
             body.put("message", "Invalid jwt token");
             response.getWriter().write(new ObjectMapper().writeValueAsString(body));
             response.setStatus(403);
