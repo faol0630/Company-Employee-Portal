@@ -37,13 +37,16 @@ public class JpaUserDetailsService implements UserDetailsService {
 
         Employee employee = employeeOptional.orElseThrow();
 
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+
         //a cada employee le pasamos su lista de roles desde DB:
-        List<GrantedAuthority> authorities = employee
+        /*List<GrantedAuthority> authorities = employee
                 .getRoles()
                 .stream()
                 .map( role ->
                     new SimpleGrantedAuthority(role.getName())
-                ).collect(Collectors.toList());
+                ).collect(Collectors.toList());*/
 
         return new User(//este User viene con spring framework.No es un entity que hayamos creado.
                 employee.getUsername(),
