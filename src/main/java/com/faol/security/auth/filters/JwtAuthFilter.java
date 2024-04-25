@@ -9,10 +9,12 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.hibernate.sql.ast.tree.expression.Collation;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -26,7 +28,7 @@ import static com.faol.security.auth.TokenJwtConfig.*;
 public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
 
     //2)
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
 
     //3) constructor:
     public JwtAuthFilter(AuthenticationManager authenticationManager) {
@@ -71,9 +73,6 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
         //5) logica de este metodo:
         String username = ((User) authResult.getPrincipal()).getUsername();
 
-        //token provisional(será reemplazado por un token JWT):
-        /*String originalInput = SECRET_KEY + ":" + username;
-        String token = Base64.getEncoder().encodeToString(originalInput.getBytes());*/
 
         //JWT token:
         String token = Jwts.builder()

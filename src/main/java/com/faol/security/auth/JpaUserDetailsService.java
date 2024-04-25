@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class JpaUserDetailsService implements UserDetailsService {
@@ -36,8 +37,13 @@ public class JpaUserDetailsService implements UserDetailsService {
 
         Employee employee = employeeOptional.orElseThrow();
 
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        //a cada employee le pasamos su lista de roles desde DB:
+        List<GrantedAuthority> authorities = employee
+                .getRoles()
+                .stream()
+                .map( role ->
+                    new SimpleGrantedAuthority(role.getName())
+                ).collect(Collectors.toList());
 
         return new User(//este User viene con spring framework.No es un entity que hayamos creado.
                 employee.getUsername(),

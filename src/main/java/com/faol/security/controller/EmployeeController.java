@@ -66,6 +66,25 @@ public class EmployeeController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateEmployee(@PathVariable Long id, @RequestBody Employee employee){
+
+        Optional<Employee> result = service.getEmployeeById(id);
+        HashMap<String, Object> response = new HashMap<>();
+
+        if (result.isPresent()){
+
+            Employee employee1 = service.updateEmployee(employee, id);
+            response.put("message", "employee updated successful");
+            response.put("employee", employee1);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+
+        }else{
+            response.put("message", "error updating employee");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteEmployeeById(@PathVariable Long id) {
 

@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -34,5 +36,13 @@ public class Employee {
 
     @NotNull(message = "password must not be null")
     private String password;
+
+    @ManyToMany
+    @JoinTable(name = "employees_roles",
+            joinColumns = @JoinColumn(name = "id_employee"), //esta tabla
+            inverseJoinColumns = @JoinColumn(name = "id_role"),
+            uniqueConstraints = { @UniqueConstraint(columnNames = { "id_employee", "id_role"})}
+    )
+    private List<Role> roles;
 
 }

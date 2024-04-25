@@ -42,8 +42,8 @@ public class SpringSecurityConfig {
                             authorizeRequest
                                     //.requestMatchers(HttpMethod.GET, "/employee/get_employee/{id}")
                                     //.permitAll()
-                                    //.requestMatchers(HttpMethod.GET, "/employee/get_all")
-                                    //.permitAll()
+                                    .requestMatchers(HttpMethod.GET, "/employee/get_all")
+                                    .permitAll()
                                     .anyRequest().authenticated();
                         }
                 )

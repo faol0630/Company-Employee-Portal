@@ -255,7 +255,211 @@ provisional que habiamos creado con un token JWT :
 
             }
 
-23)
+23)  Creamos un Entity llamado Role.Creamos el Repository de Role.
+    En el repository de Role creamos el metodo findByName quedando asi:
+
+    @Repository
+    public interface RoleRepository extends JpaRepository<Role, Long> {
+        Optional<Role> findByName(String name);
+    }
+
+24) Relacionamos Role y Employee @ManyToMany.en el entity Employee agregamos:
+
+        @ManyToMany
+        @JoinTable(name = "employees_roles",
+                joinColumns = @JoinColumn(name = "id_employee"), //esta tabla
+                inverseJoinColumns = @JoinColumn(name = "id_role"),
+                uniqueConstraints = { @UniqueConstraint(columnNames = { "id_employee", "id_role"})}
+        )
+        private List<Role> roles;
+
+25) Levantamos la app.esto crea una tabla intermedia entre Employee y Role.
+    en la base de datos llenamos esa tabla intermedia que solo contiene
+    id_employee y id_role.asignamos por cada employee uno o varios id_role.
+    La combinacion de id_employee con id_role no se puede repetir.
+
+26) modificamos en el serviceImpl el metodo save o newEmployee ya que tenemos que
+    asignarle un role por defecto.Hasta este punto el employee no asigna el role
+    ya que no tiene sentido que el mismo employee se asigne el role de admin.
+    asi que el metodo save del serviceImpl quedaria asi:
+
+        @Override
+        public void newEmployee(Employee employee){
+            String passwordBCrypt = passwordEncoder.encode(employee.getPassword());
+            employee.setPassword(passwordBCrypt);
+
+            //buscamos el role en la DB:
+            Optional<Role> role = roleRepository.findByName("ROLE_USER");
+            //creamos una lista de roles debido a la relacion @ManyToMany:
+            List<Role> roles = new ArrayList<>();
+
+            if (role.isPresent()){
+                //agregamos el role a la lista de roles
+                roles.add(role.orElseThrow());
+            }
+            //agregamos la lista de roles al employee:
+            employee.setRoles(roles);
+            //creamos el newEmployee:
+            employeeRepo.save(employee);
+        }
+
+    para que esto funcione antes debemos inyectar el roleRepository:
+
+    @Autowired
+    RoleRepository roleRepository;
+
+27) en JpaUserDetailsService vamos a reemplazar el Role provisional que tenemos ahi por
+    un Role traido desde la DB.reemplazamos esto:
+
+    List<GrantedAuthority> authorities = new ArrayList<>();
+    authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+
+    por esto:
+
+    //a cada employee le pasamos su lista de roles desde DB:
+    List<GrantedAuthority> authorities = employee
+              .getRoles()
+              .stream()
+              .map( role ->
+                  new SimpleGrantedAuthority(role.getName())
+              ).collect(Collectors.toList());
+
+28) En este punto vamos a pasar los roles de cada employee al token.
+    En la class JwtAuthFilter , dentro del metodo successfulAuthentication, despues de configurar username:
+
+            Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
+            //para averiguar si es Admin:
+            boolean isAdmin = roles.stream().anyMatch(role -> role.getAuthority().equals("ROLE_ADMIN"));
+            Claims claims = Jwts.claims(); //data dentro del token
+            claims.put("authorities", new ObjectMapper().writeValueAsString(roles));//agregamos los roles s claims
+            claims.put("isAdmin", isAdmin);
+
+    en el token pasamos los roles usando claims.quedaria de esta forma :
+
+            //JWT token:
+            String token = Jwts.builder()
+                    .setClaims(claims)//pasando los roles al token usando claims.
+                    .setSubject(username)
+                    .signWith(SECRET_KEY)
+                    .setIssuedAt(new Date())
+                    .setExpiration(new Date(System.currentTimeMillis() + 3600000))
+                    .compact();
+
+29) Dentro del paquete auth, Creamos una class abstracta para poder pasar los roles al token sin errores :
+
+    public abstract class SimpleGrantedAuthorityJsonCreator {
+
+        @JsonCreator
+        public SimpleGrantedAuthorityJsonCreator(@JsonProperty("authority") String role) {
+        }
+    }
+
+
+30) En la class JwtValidationFilter dentro del metodo doFilterInternal, dentro del try el codigo quedaria:
+
+                Claims claims = Jwts.parserBuilder().setSigningKey(SECRET_KEY)
+                        .build()
+                        .parseClaimsJws(token)
+                        .getBody();
+
+                String username = claims.getSubject();
+
+                Object authoritiesClaims = claims.get("authorities");
+
+                Collection<? extends GrantedAuthority> authorities = Arrays.asList(new ObjectMapper()
+                        .addMixIn(SimpleGrantedAuthority.class, SimpleGrantedAuthorityJsonCreator.class)
+                        .readValue(authoritiesClaims.toString().getBytes(), SimpleGrantedAuthority[].class));
+
+                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, null, authorities);
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken); //autenticacion
+                chain.doFilter(request,response);
+
+30)
+
+
+
+
+
+
+VAMOS EN EL VIDEO 222
+VAMOS EN EL VIDEO 222
+VAMOS EN EL VIDEO 222
+VAMOS EN EL VIDEO 222
+VAMOS EN EL VIDEO 222
+
+
+
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+
+COPIAR Y PEGAR
+
+1) En pom.xml agregar las dependencias de spring security y de jwt:
+
+        <dependency>
+        			<groupId>org.springframework.boot</groupId>
+        			<artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <dependency>
+            	    <groupId>io.jsonwebtoken</groupId>
+            		<artifactId>jjwt-api</artifactId>
+            		<version>0.11.5</version>
+        </dependency>
+
+        <dependency>
+            		<groupId>io.jsonwebtoken</groupId>
+            		<artifactId>jjwt-impl</artifactId>
+            		<version>0.11.5</version>
+            		<scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            		<groupId>io.jsonwebtoken</groupId>
+            		<artifactId>jjwt-jackson</artifactId>
+            		<version>0.11.5</version>
+            		<scope>runtime</scope>
+        </dependency>
+
+2) En el Repository agregar el metodo:
+
+    Optional<Employee> findByUsername(String username);
+
+    reemplazamos Employee por el entity de nuestra app.
+
+3) En el serviceImpl de nuestra app inyectamos :
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    con este password encoder encriptamos el password en los metodos POST y PUT quedando algo como:
+
+        @Override
+        public void newEmployee(Employee employee){
+            String passwordBCrypt = passwordEncoder.encode(employee.getPassword());
+            employee.setPassword(passwordBCrypt);
+            employeeRepo.save(employee);
+        }
+
+Si se trata de copiar y pegar , las class SpringSecurityConfig y TokenJwtConfig se pueden pegar sin tener
+que modificar nada.
+
+En la class JwtAuthFilter toca cambiar todo lo que se refiere a Employee ya que ese es el entity de esta app
+pero en otra podria ser User , Client , etc.Esto solo seria en el metodo attemptAuthentication, cambiando 2
+lineas de codigo.
+
+En la class JpaUserDetailsService si toca reemplazar toda la logica de Employee por el entity de la app ya que
+el metodo loadUserByUsername es un metodo tipico de un service en donde se usa el repository para llamar a un
+metodo.en este caso habria que reemplazar todo lo que se relacione con Employee y en su lugar poner el entity
+de la app que estemos trabajando.
+
+Por ultimo la class JwtValidationFilter se copia y se pega sin cambiar nada.(hasta aqui vamos en el paso 23)
+
+
+
+
 
 
 
