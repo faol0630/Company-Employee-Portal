@@ -44,8 +44,8 @@ public class SpringSecurityConfig {
                             authorizeRequest
                                     .requestMatchers(HttpMethod.GET, "/employee/get_all").permitAll()
                                     .requestMatchers(HttpMethod.GET, "/employee/get_employee/{id}").hasAnyRole("USER", "ADMIN")// para varios roles
-                                    //.requestMatchers(HttpMethod.POST, "/employee/new").hasRole("ADMIN")//para un role unicamente
-                                    //.requestMatchers("/employee/**").hasRole("ADMIN")//cualquier otra ruta
+                                    .requestMatchers(HttpMethod.POST, "/employee/new").hasRole("ADMIN")//para un role unicamente
+                                    .requestMatchers("/employee/**").hasRole("ADMIN")//cualquier otra ruta
                                     .anyRequest().authenticated();
                         }
                 )

@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,7 @@ public class JpaUserDetailsService implements UserDetailsService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         //vaciar el contenido original
 
@@ -37,16 +39,16 @@ public class JpaUserDetailsService implements UserDetailsService {
 
         Employee employee = employeeOptional.orElseThrow();
 
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        /*List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));*/
 
         //a cada employee le pasamos su lista de roles desde DB:
-        /*List<GrantedAuthority> authorities = employee
+        List<GrantedAuthority> authorities = employee
                 .getRoles()
                 .stream()
                 .map( role ->
                     new SimpleGrantedAuthority(role.getName())
-                ).collect(Collectors.toList());*/
+                ).collect(Collectors.toList());
 
         return new User(//este User viene con spring framework.No es un entity que hayamos creado.
                 employee.getUsername(),

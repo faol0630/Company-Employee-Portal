@@ -1,4 +1,3 @@
-/*
 package com.faol.security.auth;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -10,4 +9,3 @@ public abstract class SimpleGrantedAuthorityJsonCreator {
     public SimpleGrantedAuthorityJsonCreator(@JsonProperty("authority") String role) {
     }
 }
-*/

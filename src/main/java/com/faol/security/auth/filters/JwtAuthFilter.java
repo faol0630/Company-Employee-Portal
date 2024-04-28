@@ -4,6 +4,7 @@ import com.faol.security.entity.Employee;
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,6 +20,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -73,9 +75,17 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
         //5) logica de este metodo:
         String username = ((User) authResult.getPrincipal()).getUsername();
 
+        Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
+        //para averiguar si es Admin:
+        boolean isAdmin = roles.stream().anyMatch(role -> role.getAuthority().equals("ROLE_ADMIN"));
+        Claims claims = Jwts.claims(); //data dentro del token
+        claims.put("authorities", new ObjectMapper().writeValueAsString(roles));//agregamos los roles s claims
+        claims.put("isAdmin", isAdmin);
+
 
         //JWT token:
         String token = Jwts.builder()
+                .setClaims(claims)//pasando los roles al token usando claims.
                 .setSubject(username)
                 .signWith(SECRET_KEY)
                 .setIssuedAt(new Date())
