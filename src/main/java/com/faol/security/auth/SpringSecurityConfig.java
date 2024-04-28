@@ -39,11 +39,13 @@ public class SpringSecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
 
         httpSecurity.authorizeHttpRequests(authorizeRequest -> {
+
+            //los roles aca van sin el prefijo ROLE_
                             authorizeRequest
-                                    //.requestMatchers(HttpMethod.GET, "/employee/get_employee/{id}")
-                                    //.permitAll()
-                                    .requestMatchers(HttpMethod.GET, "/employee/get_all")
-                                    .permitAll()
+                                    .requestMatchers(HttpMethod.GET, "/employee/get_all").permitAll()
+                                    .requestMatchers(HttpMethod.GET, "/employee/get_employee/{id}").hasAnyRole("USER", "ADMIN")// para varios roles
+                                    //.requestMatchers(HttpMethod.POST, "/employee/new").hasRole("ADMIN")//para un role unicamente
+                                    //.requestMatchers("/employee/**").hasRole("ADMIN")//cualquier otra ruta
                                     .anyRequest().authenticated();
                         }
                 )

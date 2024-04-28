@@ -374,7 +374,17 @@ provisional que habiamos creado con un token JWT :
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken); //autenticacion
                 chain.doFilter(request,response);
 
-30)
+31) pasamos a implementar el patron DTO. primero creamos un paquete llamado dto.
+    dentro de ese paquete creamos una clase llamada en este caso EmployeeDTO en donde
+    vamos a pasar solo los atrobutos que queremos que sean visibles.
+
+32) dentro del paquete dto creamos otro paquete llamado mapper.dentro de mapper creamos
+    la clase (en este caso) EmployeeMapper o EmployeeDTOMapper, la cual implementa dentro
+    el patron builder en donde se crea un Objeto EmployeeDTO desde un Objeto Employee.
+
+33) en la interface ServiceInt y en la class ServiceImpl , modificamos los metodos
+    findAll, findByID,y todos los metodos que devuelvan el entity
+    para que devuelvan el objeto DTO.Lo mismo hacemos en Controller.
 
 
 

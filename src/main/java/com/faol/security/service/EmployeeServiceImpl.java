@@ -1,6 +1,8 @@
 package com.faol.security.service;
 
 
+import com.faol.security.dto.EmployeeDTO;
+import com.faol.security.dto.mapper.EmployeeDTOMapper;
 import com.faol.security.entity.Employee;
 import com.faol.security.entity.Role;
 import com.faol.security.repository.EmployeeRepo;
@@ -9,13 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
-public class EmployeeServiceImpl implements EmployeeServiceInt{
+public class EmployeeServiceImpl implements EmployeeServiceInt {
 
     @Autowired
     EmployeeRepo employeeRepo;
@@ -27,19 +29,36 @@ public class EmployeeServiceImpl implements EmployeeServiceInt{
     PasswordEncoder passwordEncoder;
 
     @Override
-    public List<Employee> getAllEmployees(){
-        return employeeRepo.findAll();
+    public List<EmployeeDTO> getAllEmployees() {
+
+        List<Employee> employeeList = employeeRepo.findAll();
+
+        return employeeList.stream().map(employee -> EmployeeDTOMapper
+                        .getInstance()
+                        .setEmployeeDTOMapper(employee)
+                        .build())
+                .collect(Collectors.toList()); //genera una lista de EmployeeDTO
+
     }
 
     @Override
-    public Optional<Employee> getEmployeeById(Long id_employee){
+    public Optional<EmployeeDTO> getEmployeeById(Long id_employee) {
 
-         return employeeRepo.findById(id_employee);
+        Optional<Employee> employee = employeeRepo.findById(id_employee);
+
+        if (employee.isPresent()) {
+            return Optional
+                    .of(EmployeeDTOMapper.getInstance()
+                            .setEmployeeDTOMapper(employee.orElseThrow())
+                            .build());
+        }
+
+        return Optional.empty();
 
     }
 
     @Override
-    public void newEmployee(Employee employee){
+    public void newEmployee(Employee employee) {
         String passwordBCrypt = passwordEncoder.encode(employee.getPassword());
         employee.setPassword(passwordBCrypt);
 
@@ -48,7 +67,7 @@ public class EmployeeServiceImpl implements EmployeeServiceInt{
         //creamos una lista de roles debido a la relacion @ManyToMany:
         List<Role> roles = new ArrayList<>();
 
-        if (role.isPresent()){
+        if (role.isPresent()) {
             //agregamos el role a la lista de roles
             roles.add(role.orElseThrow());
         }
@@ -59,38 +78,41 @@ public class EmployeeServiceImpl implements EmployeeServiceInt{
     }
 
     @Override
-    public Employee updateEmployee(Employee employee, Long id_employee){
+    public EmployeeDTO updateEmployee(Employee employee, Long id_employee) {
 
-       Optional<Employee> founded = employeeRepo.findById(id_employee);
+        Optional<Employee> founded = employeeRepo.findById(id_employee);
 
-       if (founded.isPresent()){
+        if (founded.isPresent()) {
 
-           Employee updatedEmployee = Employee.builder()
-                   .id_employee(id_employee)
-                   .name(employee.getName())
-                   .lastname(employee.getLastname())
-                   .email(employee.getEmail())
-                   .username(employee.getUsername())
-                   .password(passwordEncoder.encode(employee.getPassword()))
-                   .build();
+            Employee updatedEmployee = Employee.builder()
+                    .id_employee(id_employee)
+                    .name(employee.getName())
+                    .lastname(employee.getLastname())
+                    .email(employee.getEmail())
+                    .username(employee.getUsername())
+                    .password(passwordEncoder.encode(employee.getPassword()))
+                    .build();
 
-           employeeRepo.save(updatedEmployee);
+            Employee employeeToSave = employeeRepo.save(updatedEmployee);
 
-           return updatedEmployee;
-       }else{
-           return founded.get();
-       }
+            EmployeeDTO employeeDTO = EmployeeDTOMapper.getInstance().setEmployeeDTOMapper(employeeToSave).build();
+
+            return employeeDTO;
+        } else {
+            EmployeeDTO emptyEmployeeDTO = new EmployeeDTO();
+            return emptyEmployeeDTO;
+        }
 
     }
 
     @Override
-    public void deleteEmployeeById(Long id_employee){
+    public void deleteEmployeeById(Long id_employee) {
 
         employeeRepo.deleteById(id_employee);
     }
 
     @Override
-    public void deleteAllEmployees(){
+    public void deleteAllEmployees() {
         employeeRepo.deleteAll();
     }
 

@@ -1,5 +1,7 @@
 package com.faol.security.controller;
 
+import com.faol.security.dto.EmployeeDTO;
+import com.faol.security.dto.mapper.EmployeeDTOMapper;
 import com.faol.security.entity.Employee;
 import com.faol.security.service.EmployeeServiceInt;
 import jakarta.validation.Valid;
@@ -24,14 +26,14 @@ public class EmployeeController {
     public ResponseEntity<?> getAllEmployees() {
 
         HashMap<String, Object> response = new HashMap<>();
-        List<Employee> result = service.getAllEmployees();
+        List<EmployeeDTO> result = service.getAllEmployees();
 
         if (result.isEmpty()) {
-            response.put("message", "Employees list is empty");
+            response.put("message", "EmployeesDTO list is empty");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         } else {
             response.put("message", "List ok");
-            response.put("employees list", result);
+            response.put("employeesDTO list", result);
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
     }
@@ -40,14 +42,14 @@ public class EmployeeController {
     public ResponseEntity<?> getEmployeeById(@PathVariable Long id) {
 
         HashMap<String, Object> response = new HashMap<>();
-        Optional<Employee> employee = service.getEmployeeById(id);
+        Optional<EmployeeDTO> employeeDTO = service.getEmployeeById(id);
 
-        if (employee.isEmpty()) {
+        if (employeeDTO.isEmpty()) {
             response.put("message", "employee not found");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         } else {
             response.put("message", "employee found");
-            response.put("employee", employee);
+            response.put("employeeDTO", employeeDTO);
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
 
@@ -58,28 +60,35 @@ public class EmployeeController {
     public ResponseEntity<?> newEmployee(@Valid @RequestBody Employee employee) {
 
         HashMap<String, Object> response = new HashMap<>();
-        service.newEmployee(employee);
 
-        response.put("message", "Employee created");
-        response.put("employee", employee);
 
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+            service.newEmployee(employee);
+
+            EmployeeDTO employeeDTO = EmployeeDTOMapper.getInstance().setEmployeeDTOMapper(employee).build();
+
+            response.put("message", "Employee created");
+            response.put("employeeDTO", employeeDTO);
+
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+
+       
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateEmployee(@PathVariable Long id, @RequestBody Employee employee){
+    public ResponseEntity<?> updateEmployee(@PathVariable Long id, @RequestBody Employee employee) {
 
-        Optional<Employee> result = service.getEmployeeById(id);
+        Optional<EmployeeDTO> result = service.getEmployeeById(id);
         HashMap<String, Object> response = new HashMap<>();
 
-        if (result.isPresent()){
+        if (result.isPresent()) {
 
-            Employee employee1 = service.updateEmployee(employee, id);
+            EmployeeDTO employeeDTO1 = service.updateEmployee(employee, id);
             response.put("message", "employee updated successful");
-            response.put("employee", employee1);
+            response.put("employeeDTO", employeeDTO1);
             return ResponseEntity.status(HttpStatus.OK).body(response);
 
-        }else{
+        } else {
             response.put("message", "error updating employee");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
@@ -89,14 +98,14 @@ public class EmployeeController {
     public ResponseEntity<?> deleteEmployeeById(@PathVariable Long id) {
 
         HashMap<String, Object> response = new HashMap<>();
-        Optional<Employee> employee = service.getEmployeeById(id);
+        Optional<EmployeeDTO> employeeDTO = service.getEmployeeById(id);
 
-        if (employee.isEmpty()){
-            response.put("message", "Employee not found.Nothing to delete");
+        if (employeeDTO.isEmpty()) {
+            response.put("message", "Employee with id " + id + " not found.Nothing to delete");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }else{
+        } else {
             service.deleteEmployeeById(id);
-            response.put("message", "Employee deleted");
+            response.put("message", "Employee with id " + id + " deleted");
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
 
@@ -106,12 +115,12 @@ public class EmployeeController {
     public ResponseEntity<?> deleteAllEmployees() {
 
         HashMap<String, Object> response = new HashMap<>();
-        List<Employee> employeeList = service.getAllEmployees();
+        List<EmployeeDTO> employeeDTOList = service.getAllEmployees();
 
-        if (employeeList.isEmpty()){
+        if (employeeDTOList.isEmpty()) {
             response.put("message", "Empty list.Nothing to delete");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }else{
+        } else {
             service.deleteAllEmployees();
             response.put("message", "All employees deleted.Empty list");
             return ResponseEntity.status(HttpStatus.OK).body(response);
