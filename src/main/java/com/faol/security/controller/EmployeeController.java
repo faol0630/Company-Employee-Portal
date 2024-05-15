@@ -3,11 +3,16 @@ package com.faol.security.controller;
 import com.faol.security.dto.EmployeeDTO;
 import com.faol.security.dto.mapper.EmployeeDTOMapper;
 import com.faol.security.entity.Employee;
+import com.faol.security.exceptions.ErrorDetails;
+import com.faol.security.exceptions.FieldValidationException;
+import com.faol.security.exceptions.HandlerExceptionController;
+import com.faol.security.exceptions.ResourceNotFoundException;
 import com.faol.security.service.EmployeeServiceInt;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -21,38 +26,41 @@ public class EmployeeController {
     @Autowired
     EmployeeServiceInt service;
 
-
     @GetMapping("/get_all")
     public ResponseEntity<?> getAllEmployees() {
 
-        HashMap<String, Object> response = new HashMap<>();
-        List<EmployeeDTO> result = service.getAllEmployees();
+        try{
 
-        if (result.isEmpty()) {
-            response.put("message", "EmployeesDTO list is empty");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        } else {
+            HashMap<String, Object> response = new HashMap<>();
+            List<EmployeeDTO> result = service.getAllEmployees();
+
             response.put("message", "List ok");
             response.put("employeesDTO list", result);
             return ResponseEntity.status(HttpStatus.OK).body(response);
+
+        }catch (ResourceNotFoundException ex){
+            ResponseEntity<ErrorDetails> errorResponse = HandlerExceptionController.handleResourceNotFoundException(ex);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
+
     }
 
     @GetMapping("/get_employee/{id}")
     public ResponseEntity<?> getEmployeeById(@PathVariable Long id) {
 
         HashMap<String, Object> response = new HashMap<>();
-        Optional<EmployeeDTO> employeeDTO = service.getEmployeeById(id);
 
-        if (employeeDTO.isEmpty()) {
-            response.put("message", "employee not found");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        } else {
+        try {
+            Optional<EmployeeDTO> employeeDTO = service.getEmployeeById(id);
             response.put("message", "employee found");
-            response.put("employeeDTO", employeeDTO);
+            response.put("employeeDTO", employeeDTO.orElseThrow());
             return ResponseEntity.status(HttpStatus.OK).body(response);
-        }
 
+        } catch (ResourceNotFoundException ex) {
+
+            ResponseEntity<ErrorDetails> errorResponse = HandlerExceptionController.handleResourceNotFoundException(ex);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
 
     }
 
@@ -61,7 +69,7 @@ public class EmployeeController {
 
         HashMap<String, Object> response = new HashMap<>();
 
-
+        try {
 
             service.newEmployee(employee);
 
@@ -72,41 +80,47 @@ public class EmployeeController {
 
             return ResponseEntity.status(HttpStatus.OK).body(response);
 
-       
+        } catch (FieldValidationException ex) {
+
+            ResponseEntity<ErrorDetails> errorResponse = HandlerExceptionController.handleFieldValidationException(ex);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+
+        }
+
+
     }
 
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateEmployee(@PathVariable Long id, @RequestBody Employee employee) {
 
-        Optional<EmployeeDTO> result = service.getEmployeeById(id);
         HashMap<String, Object> response = new HashMap<>();
 
-        if (result.isPresent()) {
-
+        try {
             EmployeeDTO employeeDTO1 = service.updateEmployee(employee, id);
             response.put("message", "employee updated successful");
             response.put("employeeDTO", employeeDTO1);
             return ResponseEntity.status(HttpStatus.OK).body(response);
 
-        } else {
-            response.put("message", "error updating employee");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } catch (ResourceNotFoundException ex) {
+            ResponseEntity<ErrorDetails> errorResponse = HandlerExceptionController.handleResourceNotFoundException(ex);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
+
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteEmployeeById(@PathVariable Long id) {
 
         HashMap<String, Object> response = new HashMap<>();
-        Optional<EmployeeDTO> employeeDTO = service.getEmployeeById(id);
 
-        if (employeeDTO.isEmpty()) {
-            response.put("message", "Employee with id " + id + " not found.Nothing to delete");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        } else {
+        try {
             service.deleteEmployeeById(id);
             response.put("message", "Employee with id " + id + " deleted");
             return ResponseEntity.status(HttpStatus.OK).body(response);
+
+        } catch (ResourceNotFoundException ex) {
+            ResponseEntity<ErrorDetails> errorResponse = HandlerExceptionController.handleResourceNotFoundException(ex);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
 
     }
@@ -114,16 +128,16 @@ public class EmployeeController {
     @DeleteMapping("/delete_all")
     public ResponseEntity<?> deleteAllEmployees() {
 
-        HashMap<String, Object> response = new HashMap<>();
-        List<EmployeeDTO> employeeDTOList = service.getAllEmployees();
+        try {
 
-        if (employeeDTOList.isEmpty()) {
-            response.put("message", "Empty list.Nothing to delete");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        } else {
+            HashMap<String, Object> response = new HashMap<>();
             service.deleteAllEmployees();
             response.put("message", "All employees deleted.Empty list");
             return ResponseEntity.status(HttpStatus.OK).body(response);
+
+        } catch (ResourceNotFoundException ex) {
+            ResponseEntity<ErrorDetails> errorResponse = HandlerExceptionController.handleResourceNotFoundException(ex);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
 
     }

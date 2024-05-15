@@ -5,6 +5,8 @@ import com.faol.security.dto.EmployeeDTO;
 import com.faol.security.dto.mapper.EmployeeDTOMapper;
 import com.faol.security.entity.Employee;
 import com.faol.security.entity.Role;
+import com.faol.security.exceptions.FieldValidationException;
+import com.faol.security.exceptions.ResourceNotFoundException;
 import com.faol.security.repository.EmployeeRepo;
 import com.faol.security.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,11 +35,15 @@ public class EmployeeServiceImpl implements EmployeeServiceInt {
 
         List<Employee> employeeList = employeeRepo.findAll();
 
-        return employeeList.stream().map(employee -> EmployeeDTOMapper
-                        .getInstance()
-                        .setEmployeeDTOMapper(employee)
-                        .build())
-                .collect(Collectors.toList()); //genera una lista de EmployeeDTO
+        if (!employeeList.isEmpty()){
+            return employeeList.stream().map(employee -> EmployeeDTOMapper
+                            .getInstance()
+                            .setEmployeeDTOMapper(employee)
+                            .build())
+                    .collect(Collectors.toList()); //genera una lista de EmployeeDTO
+        }else{
+            throw new ResourceNotFoundException("Empty list");
+        }
 
     }
 
@@ -51,9 +57,12 @@ public class EmployeeServiceImpl implements EmployeeServiceInt {
                     .of(EmployeeDTOMapper.getInstance()
                             .setEmployeeDTOMapper(employee.orElseThrow())
                             .build());
+
+
+        } else {
+            throw new ResourceNotFoundException("Employee with id " + id_employee + " not found");
         }
 
-        return Optional.empty();
 
     }
 
@@ -68,11 +77,32 @@ public class EmployeeServiceImpl implements EmployeeServiceInt {
         List<Role> roles = new ArrayList<>();
 
         if (role.isPresent()) {
-            //agregamos el role a la lista de roles
+            //agregamos el role a la lista de roles del empleado
             roles.add(role.orElseThrow());
+        } else {
+            throw new FieldValidationException("Roles cannot be empty");
         }
         //agregamos la lista de roles al employee:
         employee.setRoles(roles);
+
+        //errores manejados con FieldValidationException
+
+        if (employee.getName() == null || employee.getName().equals("")) {
+            throw new FieldValidationException("Name cannot be empty");
+        }
+        if (employee.getLastname() == null || employee.getLastname().equals("")) {
+            throw new FieldValidationException("Lastname cannot be empty");
+        }
+        if (employee.getUsername() == null || employee.getUsername().equals("")) {
+            throw new FieldValidationException("Username cannot be empty");
+        }
+        if (employee.getEmail() == null || employee.getEmail().equals("")) {
+            throw new FieldValidationException("Email cannot be empty");
+        }
+        if (employee.getPassword() == null || employee.getPassword().equals("")) {
+            throw new FieldValidationException("Password cannot be empty");
+        }
+
         //creamos el newEmployee:
         employeeRepo.save(employee);
     }
@@ -98,9 +128,11 @@ public class EmployeeServiceImpl implements EmployeeServiceInt {
             EmployeeDTO employeeDTO = EmployeeDTOMapper.getInstance().setEmployeeDTOMapper(employeeToSave).build();
 
             return employeeDTO;
+
         } else {
-            EmployeeDTO emptyEmployeeDTO = new EmployeeDTO();
-            return emptyEmployeeDTO;
+
+            throw new ResourceNotFoundException("Employee with id " + id_employee + " not found.Nothing to update");
+
         }
 
     }
@@ -108,12 +140,28 @@ public class EmployeeServiceImpl implements EmployeeServiceInt {
     @Override
     public void deleteEmployeeById(Long id_employee) {
 
-        employeeRepo.deleteById(id_employee);
+        Optional<Employee> employee = employeeRepo.findById(id_employee);
+
+        if (employee.isEmpty()) {
+            throw new ResourceNotFoundException("Employee with id " + id_employee + " not found.Nothing to delete");
+        } else {
+            employeeRepo.deleteById(id_employee);
+        }
+
     }
 
     @Override
     public void deleteAllEmployees() {
-        employeeRepo.deleteAll();
+
+        List<Employee> employeeList = employeeRepo.findAll();
+
+        if (employeeList.isEmpty()) {
+            throw new ResourceNotFoundException("Empty list.Nothing to delete");
+        } else {
+            employeeRepo.deleteAll();
+
+        }
+
     }
 
 

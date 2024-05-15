@@ -47,6 +47,7 @@ public class SpringSecurityConfig {
                                     .requestMatchers(HttpMethod.POST, "/employee/new").hasRole("ADMIN")//para un role unicamente
                                     .requestMatchers("/employee/**").hasRole("ADMIN")//cualquier otra ruta
                                     .anyRequest().authenticated();
+                                    //.anyRequest().permitAll(); //solo para hacer pruebas
                         }
                 )
                 .addFilter(new JwtAuthFilter(authenticationConfiguration.getAuthenticationManager()))//despues de haber creado JwtAuthFilter

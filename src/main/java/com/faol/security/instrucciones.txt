@@ -387,15 +387,72 @@ provisional que habiamos creado con un token JWT :
     para que devuelvan el objeto DTO.Lo mismo hacemos en Controller.
 
 
+En este punto hemos terminado de implementar la seguridad en la app.
+
+[Manejo de excepciones][Manejo de excepciones][Manejo de excepciones][Manejo de excepciones]
+
+34) creamos un paquete llamado exceptions
+
+35) dentro de exceptions creamos una clase con atributos que va a representar el error
+
+36) tambien dentro de exceptions creamos otra clase que va a ser quien manipula los errores.
+    se puede llamar por ejemplo: HandlerExceptionController que lleva la anotacion
+    @RestControllerAdvice
+
+37) en el caso de que queramos personalizar el error 404 agregamos en application properties:
+
+    spring.mvc.throw-exception-if-no-handler-found=true
+    spring-web.resources.add-mappings=false
+
+38) podemos crear exceptions personalizadas que van a ser el parametro message de la class Error.Ejemplo:
+
+
+    public class FieldValidationException extends RuntimeException{
+
+        public FieldValidationException(String message) {
+            super(message);
+        }
+    }
+
+39) en @Service debemos cambiar la configuracion y en @Controller debemos usar try catch.
+
+    Ejemplo en @Service en el @POST:
+
+            //errores manejados con FieldValidationException
+            if (employee.getId_employee().equals(null) || employee.getId_employee().equals(Integer.parseInt(""))){
+                throw new FieldValidationException("Id cannot be empty");
+            }
+            if (employee.getName() == null || employee.getName().equals("")){
+                throw new FieldValidationException("Name cannot be empty");
+            }
+
+
+    Ejemplo en @Controller en el endpoint @POST:
+
+            HashMap<String, Object> response = new HashMap<>();
+
+            try{
+
+                service.newEmployee(employee);
+
+                EmployeeDTO employeeDTO = EmployeeDTOMapper.getInstance().setEmployeeDTOMapper(employee).build();
+
+                response.put("message", "Employee created");
+                response.put("employeeDTO", employeeDTO);
+
+                return ResponseEntity.status(HttpStatus.OK).body(response);
+
+            }catch (FieldValidationException ex){
+
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+
+            }
 
 
 
 
-VAMOS EN EL VIDEO 222
-VAMOS EN EL VIDEO 222
-VAMOS EN EL VIDEO 222
-VAMOS EN EL VIDEO 222
-VAMOS EN EL VIDEO 222
+
+
 
 
 
