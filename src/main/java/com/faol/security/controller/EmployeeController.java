@@ -6,6 +6,7 @@ import com.faol.security.entity.Employee;
 import com.faol.security.exceptions.ErrorDetails;
 import com.faol.security.exceptions.FieldValidationException;
 import com.faol.security.exceptions.HandlerExceptionController;
+import com.faol.security.exceptions.IllegalArgumentException;
 import com.faol.security.exceptions.ResourceNotFoundException;
 import com.faol.security.service.EmployeeServiceInt;
 import jakarta.validation.Valid;
@@ -80,9 +81,9 @@ public class EmployeeController {
 
             return ResponseEntity.status(HttpStatus.OK).body(response);
 
-        } catch (FieldValidationException ex) {
+        } catch (IllegalArgumentException ex) {
 
-            ResponseEntity<ErrorDetails> errorResponse = HandlerExceptionController.handleFieldValidationException(ex);
+            ResponseEntity<ErrorDetails> errorResponse = HandlerExceptionController.illegalArgumentException(ex);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 
         }

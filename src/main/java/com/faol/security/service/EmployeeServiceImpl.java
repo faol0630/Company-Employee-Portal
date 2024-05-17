@@ -6,6 +6,7 @@ import com.faol.security.dto.mapper.EmployeeDTOMapper;
 import com.faol.security.entity.Employee;
 import com.faol.security.entity.Role;
 import com.faol.security.exceptions.FieldValidationException;
+import com.faol.security.exceptions.IllegalArgumentException;
 import com.faol.security.exceptions.ResourceNotFoundException;
 import com.faol.security.repository.EmployeeRepo;
 import com.faol.security.repository.RoleRepository;
@@ -35,13 +36,13 @@ public class EmployeeServiceImpl implements EmployeeServiceInt {
 
         List<Employee> employeeList = employeeRepo.findAll();
 
-        if (!employeeList.isEmpty()){
+        if (!employeeList.isEmpty()) {
             return employeeList.stream().map(employee -> EmployeeDTOMapper
                             .getInstance()
                             .setEmployeeDTOMapper(employee)
                             .build())
                     .collect(Collectors.toList()); //genera una lista de EmployeeDTO
-        }else{
+        } else {
             throw new ResourceNotFoundException("Empty list");
         }
 
@@ -68,43 +69,33 @@ public class EmployeeServiceImpl implements EmployeeServiceInt {
 
     @Override
     public void newEmployee(Employee employee) {
-        String passwordBCrypt = passwordEncoder.encode(employee.getPassword());
-        employee.setPassword(passwordBCrypt);
 
-        //buscamos el role en la DB:
-        Optional<Role> role = roleRepository.findByName("ROLE_USER");
-        //creamos una lista de roles debido a la relacion @ManyToMany:
-        List<Role> roles = new ArrayList<>();
+        try{
 
-        if (role.isPresent()) {
-            //agregamos el role a la lista de roles del empleado
-            roles.add(role.orElseThrow());
-        } else {
-            throw new FieldValidationException("Roles cannot be empty");
-        }
-        //agregamos la lista de roles al employee:
-        employee.setRoles(roles);
+            String passwordBCrypt = passwordEncoder.encode(employee.getPassword());
+            employee.setPassword(passwordBCrypt);
 
-        //errores manejados con FieldValidationException
+            //buscamos el role en la DB:
+            Optional<Role> role = roleRepository.findByName("ROLE_USER");
+            //creamos una lista de roles debido a la relacion @ManyToMany:
+            List<Role> roles = new ArrayList<>();
 
-        if (employee.getName() == null || employee.getName().equals("")) {
-            throw new FieldValidationException("Name cannot be empty");
-        }
-        if (employee.getLastname() == null || employee.getLastname().equals("")) {
-            throw new FieldValidationException("Lastname cannot be empty");
-        }
-        if (employee.getUsername() == null || employee.getUsername().equals("")) {
-            throw new FieldValidationException("Username cannot be empty");
-        }
-        if (employee.getEmail() == null || employee.getEmail().equals("")) {
-            throw new FieldValidationException("Email cannot be empty");
-        }
-        if (employee.getPassword() == null || employee.getPassword().equals("")) {
-            throw new FieldValidationException("Password cannot be empty");
+            if (role.isPresent()) {
+                //agregamos el role a la lista de roles del empleado
+                roles.add(role.orElseThrow());
+            } else {
+                throw new FieldValidationException("Roles cannot be empty");
+            }
+            //agregamos la lista de roles al employee:
+            employee.setRoles(roles);
+
+            //creamos el newEmployee:
+            employeeRepo.save(employee);
+
+        }catch (IllegalArgumentException ex){
+            throw new IllegalArgumentException("error creating new employee");
         }
 
-        //creamos el newEmployee:
-        employeeRepo.save(employee);
     }
 
     @Override

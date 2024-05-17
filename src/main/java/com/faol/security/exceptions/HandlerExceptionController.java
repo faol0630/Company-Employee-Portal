@@ -48,6 +48,19 @@ public class HandlerExceptionController  {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
 
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public static ResponseEntity<ErrorDetails> illegalArgumentException(IllegalArgumentException ex){
+
+        ErrorDetails error = ErrorDetails.builder()
+                .date(new Date())
+                .error("error validating the field")
+                .message(ex.getMessage())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     //estas exceptiones requieren configuracion adicional en @Service(if else) y @Controller(try catch).
 
 }
