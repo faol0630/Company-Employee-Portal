@@ -70,8 +70,6 @@ public class EmployeeServiceImpl implements EmployeeServiceInt {
     @Override
     public void newEmployee(Employee employee) {
 
-        try{
-
             String passwordBCrypt = passwordEncoder.encode(employee.getPassword());
             employee.setPassword(passwordBCrypt);
 
@@ -83,18 +81,14 @@ public class EmployeeServiceImpl implements EmployeeServiceInt {
             if (role.isPresent()) {
                 //agregamos el role a la lista de roles del empleado
                 roles.add(role.orElseThrow());
+                //agregamos la lista de roles al employee:
+                employee.setRoles(roles);
+
+                //creamos el newEmployee:
+                employeeRepo.save(employee);
             } else {
                 throw new FieldValidationException("Roles cannot be empty");
             }
-            //agregamos la lista de roles al employee:
-            employee.setRoles(roles);
-
-            //creamos el newEmployee:
-            employeeRepo.save(employee);
-
-        }catch (IllegalArgumentException ex){
-            throw new IllegalArgumentException("error creating new employee");
-        }
 
     }
 
@@ -103,7 +97,7 @@ public class EmployeeServiceImpl implements EmployeeServiceInt {
 
         Optional<Employee> founded = employeeRepo.findById(id_employee);
 
-        if (founded.isPresent()) {
+        if (founded.isPresent()) { //evaluar este if a ver si con eso se evalua todo lo de dentro??????
 
             Employee updatedEmployee = Employee.builder()
                     .id_employee(id_employee)
@@ -133,10 +127,10 @@ public class EmployeeServiceImpl implements EmployeeServiceInt {
 
         Optional<Employee> employee = employeeRepo.findById(id_employee);
 
-        if (employee.isEmpty()) {
-            throw new ResourceNotFoundException("Employee with id " + id_employee + " not found.Nothing to delete");
-        } else {
+        if (employee.isPresent()) {
             employeeRepo.deleteById(id_employee);
+        } else {
+            throw new ResourceNotFoundException("Employee with id " + id_employee + " not found.Nothing to delete");
         }
 
     }

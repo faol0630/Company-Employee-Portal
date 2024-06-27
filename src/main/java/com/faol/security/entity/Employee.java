@@ -45,4 +45,16 @@ public class Employee {
     )
     private List<Role> roles;
 
+    @Override
+    public String toString() {
+        return "Employee{" +
+                "id_employee=" + id_employee +
+                ", name='" + name + '\'' +
+                ", lastname='" + lastname + '\'' +
+                ", email='" + email + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", roles=" + roles +
+                '}';
+    }
 }

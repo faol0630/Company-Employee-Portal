@@ -33,7 +33,8 @@ public class EmployeeDTOMapper {
     public EmployeeDTO build(){
 
         if (employee == null){
-            throw new RuntimeException("You must pass the entity as a parameter");
+            //throw new RuntimeException("You must pass the entity as a parameter");
+            throw new IllegalArgumentException("You must pass the entity as a parameter");
         }
 
         EmployeeDTO employeeDTO = new EmployeeDTO();
