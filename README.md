@@ -1,5 +1,5 @@
-Este proyecto es una aplicación Spring Boot que implementa " +
-                                "seguridad con JWT, cuenta con una base de datos relacional conectada " +
+Este proyecto es una aplicación Spring Boot que implementa 
+                                seguridad con JWT, cuenta con una base de datos relacional conectada 
                                 "mediante JPA y Hibernate. Utiliza el patrón DTO para la transferencia " +
                                 "de datos, manejo de excepciones personalizado, y emplea Lombok para " +
                                 "reducir la boilerplate. La API está documentada con Swagger, y se han " +
