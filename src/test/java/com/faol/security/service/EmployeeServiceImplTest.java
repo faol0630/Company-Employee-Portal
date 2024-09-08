@@ -2,6 +2,7 @@ package com.faol.security.service;
 
 import com.faol.security.dto.EmployeeDTO;
 import com.faol.security.dto.mapper.EmployeeDTOMapper;
+import com.faol.security.entity.Company;
 import com.faol.security.entity.Employee;
 import com.faol.security.entity.Role;
 import com.faol.security.exceptions.FieldValidationException;
@@ -11,9 +12,13 @@ import com.faol.security.repository.RoleRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -24,32 +29,54 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+//@ExtendWith(MockitoExtension.class)
+@SpringBootTest
 class EmployeeServiceImplTest {
 
-    //1)
-    @Mock
+    //1) declarar mock
+    //lo que en el service se inyecta con @Autowired, aca se le hace @Mock
+    @MockBean
     EmployeeRepo employeeRepo;
 
-    @Mock
+    @MockBean
     PasswordEncoder passwordEncoder;
 
-    @Mock
+    @MockBean
     RoleRepository roleRepository;
+    //-----------------
 
-    String passwordBCrypt;
-    EmployeeDTO employeeDTO2;
-    Employee employee3;
-
-    //2)
+    //2) declarar clase a la que se le inyectan los mocks (la clase que se está probando)
     @InjectMocks
     EmployeeServiceImpl employeeService;
+    //---------------
 
-    //3)
+
+    //3) declaraciones.
+    String passwordBCrypt;
+    EmployeeDTO employeeDTO1;
+    EmployeeDTO employeeDTO2;
+    Employee employee1;
+    Employee employee2;
+    List<Employee> buildEmptyEmployeeList;
+    List<Employee> employeeList;
+    List<EmployeeDTO> employeeDTOList;
+
+
+    //4) instancias:
     @BeforeEach
     void setUp() {
+
         MockitoAnnotations.openMocks(this);
         passwordEncoder = new BCryptPasswordEncoder();
         passwordBCrypt = passwordEncoder.encode("12345");
+
+        employeeDTO1 = EmployeeDTO.builder()
+                .id_employee(456L)
+                .username("alfredo")
+                .name("alfredo")
+                .lastname("rios")
+                .email("alfred23@net.com")
+                .build();
 
         employeeDTO2 = EmployeeDTO.builder()
                 .id_employee(634L)
@@ -59,30 +86,46 @@ class EmployeeServiceImplTest {
                 .email("raulrey534@com.es")
                 .build();
 
-        employee3 = Employee.builder()
+        employee1 = Employee.builder()
+                .id_employee(456L)
+                .username("alfredo")
+                .name("alfredo")
+                .lastname("rios")
+                .password("12345")
+                .email("alfred23@net.com")
+                .roles(List.of(new Role(2L, "ROLE_USER")))
+                .build();
+
+        employee2 = Employee.builder()
                 .id_employee(634L)
                 .username("raul")
                 .name("raul")
                 .lastname("rey")
-                .email("raulrey534@com.es")
                 .password(passwordBCrypt)
+                .email("raulrey534@com.es")
                 .roles(List.of(new Role(2L, "ROLE_USER")))
                 .build();
 
+        buildEmptyEmployeeList = new ArrayList<>();
+
+        employeeList = List.of(employee1, employee2);
+
+        employeeDTOList = List.of(employeeDTO1, employeeDTO2);
 
     }
 
     @Test
     void getAllEmployees() {
-        //5)
-        when(employeeRepo.findAll()).thenReturn(buildEmployeeList());//mock
-        var result = employeeService.getAllEmployees();
+        //5) dentro de un test, definiendo comportamiento del mock:
+        when(employeeRepo.findAll()).thenReturn(employeeList); // employeeList (DTO se aplica en el service)
+        var result = employeeService.getAllEmployees(); //employeeDTOList
 
         Assertions.assertAll("Employees test",
                 () -> assertFalse(result.isEmpty(), "checking size"),
                 () -> assertNotNull(result, "checking nulls"),
-                () -> assertNotEquals(result, buildEmployeeList()),
-                () -> assertEquals(result, buildEmployeeDTOList())
+                () -> assertNotEquals(result, employeeList),
+                () -> assertEquals(result, employeeDTOList),
+                () -> assertDoesNotThrow( () -> employeeService.getAllEmployees())
 
         );
     }
@@ -109,7 +152,8 @@ class EmployeeServiceImplTest {
                 () -> assertTrue(result.isPresent(), "checking..."),
                 () -> assertNotNull(result, "checking nulls"),
                 () -> assertNotEquals(result, employeeDTO2),
-                () -> assertEquals(result, Optional.of(employeeDTO2))
+                () -> assertEquals(result, Optional.of(employeeDTO2)),
+                () -> assertDoesNotThrow( () -> employeeService.getEmployeeById(634L))
         );
     }
 
@@ -138,7 +182,8 @@ class EmployeeServiceImplTest {
                 () -> assertNotEquals("sergio", employee2.getUsername()),
                 () -> assertFalse(employee2.getName().isEmpty()),
                 () -> assertEquals(employee2.getLastname(), "rey"),
-                () -> verify(employeeRepo, times(1)).save(employee2)
+                () -> verify(employeeRepo, times(1)).save(employee2),
+                () -> assertDoesNotThrow( () -> employeeService.newEmployee(employee2))
         );
     }
 
@@ -158,23 +203,19 @@ class EmployeeServiceImplTest {
     @Test
     void updateEmployee() {
 
-        employeeRepo.save(employee2);
-        EmployeeDTOMapper.getInstance().setEmployeeDTOMapper(employee3).build();
+        Long id = 634L;
+        when(employeeRepo.findById(id)).thenReturn(Optional.of(employee2));
+        when(employeeRepo.save(any(Employee.class))).thenReturn(employee2);
 
-        Assertions.assertAll("Checking if employee exists",
-                () -> assertEquals(634L, (long) employee2.getId_employee()),
-                () -> assertFalse(employeeRepo.existsById(634L)), //before using save,
-                () -> verify(employeeRepo, times(1)).save(employee2),
-                () -> assertEquals(employeeDTO2, EmployeeDTOMapper.getInstance().setEmployeeDTOMapper(employee3).build())
-        );
-    }
+        EmployeeDTO result = employeeService.updateEmployee(employee2, id);
 
-    @Test
-    void updateEmployee2() {
-
-        Assertions.assertAll("mapper",
-                () -> assertEquals(employeeDTO2, EmployeeDTOMapper.getInstance().setEmployeeDTOMapper(employee2).build())
-
+        Assertions.assertAll("Update employee test",
+                () -> assertNotNull(result),
+                () -> assertEquals(employee2.getId_employee(), result.getId_employee()),
+                () -> assertEquals(employee2.getUsername(), result.getUsername()),
+                () -> verify(employeeRepo, times(1)).findById(id),
+                () -> verify(employeeRepo, times(1)).save(any(Employee.class)),
+                () -> assertDoesNotThrow( () -> employeeService.updateEmployee(employee2, id))
         );
     }
 
@@ -198,7 +239,12 @@ class EmployeeServiceImplTest {
 
         employeeService.deleteEmployeeById(634L);
 
-        verify(employeeRepo, times(1)).deleteById(634L);
+        Assertions.assertAll(
+                () -> verify(employeeRepo, times(1)).deleteById(634L),
+                () -> assertDoesNotThrow( () -> employeeService.deleteEmployeeById(634L))
+        );
+
+
 
     }
 
@@ -218,11 +264,16 @@ class EmployeeServiceImplTest {
 
     @Test
     void deleteAllEmployeesNotEmptyList() {
-        when(employeeRepo.findAll()).thenReturn(buildEmployeeList());
+        when(employeeRepo.findAll()).thenReturn(employeeList);
 
         employeeService.deleteAllEmployees();
 
-        verify(employeeRepo, times(1)).deleteAll();
+        Assertions.assertAll(
+                () -> verify(employeeRepo, times(1)).deleteAll(),
+                () -> assertDoesNotThrow( () -> employeeService.deleteAllEmployees())
+        );
+
+
 
 
     }
@@ -239,58 +290,6 @@ class EmployeeServiceImplTest {
 
         assertFalse(actualMessage.contains(message));
 
-
-    }
-
-    //4)
-
-    List<Employee> buildEmptyEmployeeList = new ArrayList<>();
-
-    List<Employee> buildEmployeeList() {
-        Employee employee1 = Employee.builder()
-                .id_employee(456L)
-                .username("alfredo")
-                .name("alfredo")
-                .lastname("rios")
-                .password("12345")
-                .email("alfred23@net.com")
-                .roles(List.of(new Role(2L, "ROLE_USER")))
-                .build();
-
-        return List.of(employee1, employee2);
-    }
-
-    Employee employee2 = Employee.builder()
-            .id_employee(634L)
-            .username("raul")
-            .name("raul")
-            .lastname("rey")
-            .password(passwordBCrypt)
-            .email("raulrey534@com.es")
-            .roles(List.of(new Role(2L, "ROLE_USER")))
-            .build();
-
-    Employee illegalArgumentsEmployee = Employee.builder()
-            .id_employee(42513L)
-            .username("luisg")
-            .name("Luis")
-            .lastname("Garcia")
-            .email("luisg23@mail.net")
-            .password("")
-            .roles(List.of(new Role(2L, "ROLE_USER")))
-            .build();
-
-
-    List<EmployeeDTO> buildEmployeeDTOList() {
-        EmployeeDTO employeeDTO1 = EmployeeDTO.builder()
-                .id_employee(456L)
-                .username("alfredo")
-                .name("alfredo")
-                .lastname("rios")
-                .email("alfred23@net.com")
-                .build();
-
-        return List.of(employeeDTO1, employeeDTO2);
     }
 
 }

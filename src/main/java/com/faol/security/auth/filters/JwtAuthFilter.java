@@ -10,7 +10,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.hibernate.sql.ast.tree.expression.Collation;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,23 +26,49 @@ import java.util.Map;
 
 import static com.faol.security.auth.TokenJwtConfig.*;
 
+/**
+ * Filtro de autenticación JWT para la aplicación.
+ * <p>
+ * Esta clase extiende {@link UsernamePasswordAuthenticationFilter} y se encarga de manejar el proceso de autenticación
+ * usando JSON Web Tokens (JWT). El filtro extrae las credenciales del usuario desde el cuerpo de la solicitud, autentica
+ * al usuario, y genera un token JWT en caso de éxito. En caso de fallo en la autenticación, se proporciona una respuesta
+ * adecuada.
+ * </p>
+ */
 public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
 
     //2)
     private final AuthenticationManager authenticationManager;
 
     //3) constructor:
+    /**
+     * Constructor del filtro de autenticación JWT.
+     *
+     * @param authenticationManager el {@link AuthenticationManager} utilizado para autenticar las credenciales del usuario.
+     */
     public JwtAuthFilter(AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
     }
 
-    //1) click derecho, generate, override, generar los 3 metodos siguientes y dejarlos sin contenido:
+    //1) clic derecho, genérate, override, generar los 3 métodos siguientes y dejarlos sin contenido:
+    /**
+     * Intenta autenticar al usuario usando las credenciales proporcionadas en la solicitud.
+     * <p>
+     * Extrae el nombre de usuario y la contraseña desde el cuerpo de la solicitud JSON y crea un token de autenticación
+     * {@link UsernamePasswordAuthenticationToken}. Luego, utiliza el {@link AuthenticationManager} para autenticar el token.
+     * </p>
+     *
+     * @param request la solicitud HTTP que contiene las credenciales del usuario.
+     * @param response la respuesta HTTP que puede ser modificada si es necesario.
+     * @return el objeto {@link Authentication} que representa al usuario autenticado.
+     * @throws AuthenticationException si ocurre un error durante la autenticación.
+     */
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         //vaciar el contenido original
 
-        //4) logica de este metodo:
-        Employee employee = null;
+        //4) lógica de este método:
+        Employee employee;
         String username = null;
         String password = null;
 
@@ -52,13 +77,13 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
             username = employee.getUsername();
             password = employee.getPassword();
 
-            //para ver en consola.En produccion comentar o eliminar ya que muestra password sin encriptar.
+            /*
+            para ver en consola.En producción comentar o eliminar ya que muestra password sin encriptar.
             logger.info("Username desde request InputStream (raw) " + username);
             logger.info("Password desde request InputStream (raw) " + password);
+            */
 
-        } catch (StreamReadException e) {
-            e.printStackTrace();
-        } catch (DatabindException e) {
+        } catch (StreamReadException | DatabindException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
@@ -68,11 +93,25 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
         return authenticationManager.authenticate(authToken);
     }
 
+    /**
+     * Maneja una autenticación exitosa y genera un token JWT.
+     * <p>
+     * Si la autenticación es exitosa, genera un token JWT que incluye las autoridades del usuario y otros datos relevantes.
+     * Luego, agrega el token JWT en el encabezado de la respuesta y también incluye el token y el nombre de usuario en el cuerpo de la respuesta.
+     * </p>
+     *
+     * @param request la solicitud HTTP.
+     * @param response la respuesta HTTP en la que se incluirá el token JWT.
+     * @param chain la cadena de filtros.
+     * @param authResult el objeto {@link Authentication} que representa al usuario autenticado.
+     * @throws IOException si ocurre un error al escribir en la respuesta.
+     * @throws ServletException si ocurre un error al procesar la solicitud.
+     */
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         //vaciar el contenido original
 
-        //5) logica de este metodo:
+        //5) lógica de este método:
         String username = ((User) authResult.getPrincipal()).getUsername();
 
         Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
@@ -104,11 +143,23 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
         response.setContentType(CONTENT_TYPE);
     }
 
+    /**
+     * Maneja una autenticación fallida.
+     * <p>
+     * Si la autenticación falla, proporciona un mensaje de error en la respuesta para informar al usuario.
+     * </p>
+     *
+     * @param request la solicitud HTTP.
+     * @param response la respuesta HTTP en la que se incluirá el mensaje de error.
+     * @param failed el objeto {@link AuthenticationException} que representa el error de autenticación.
+     * @throws IOException si ocurre un error al escribir en la respuesta.
+     * @throws ServletException si ocurre un error al procesar la solicitud.
+     */
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
         //vaciar el contenido original
 
-        //6) logica de este metodo:
+        //6) lógica de este método:
         Map<String, Object> body = new HashMap<>();
         body.put("error", failed.getMessage());
         body.put("message", "authentication error. incorrect username or password");

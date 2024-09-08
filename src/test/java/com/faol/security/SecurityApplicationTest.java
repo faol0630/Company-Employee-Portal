@@ -1,29 +1,20 @@
 package com.faol.security;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContextException;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 class SecurityApplicationTest {
-
-    /*@Test
-    void main() throws Exception {
-
-
-        String expectedOutput = "";
-        String[] args = {""};
-
-        assertThrows( ApplicationContextException.class, () -> {
-            SecurityApplication.main(args);
-        });
-    }*/
 
     @Test
     void mainEmpty() throws Exception {
 
 
-        String expectedOutput = "";
+        //String expectedOutput = "";
         String[] args = {};
 
         assertThrows( ArrayIndexOutOfBoundsException.class, () -> {

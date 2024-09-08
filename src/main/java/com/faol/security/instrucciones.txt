@@ -452,6 +452,9 @@ ________________________________________________________________________________
 PRUEBAS UNITARIAS PRUEBAS UNITARIAS PRUEBAS UNITARIAS PRUEBAS UNITARIAS PRUEBAS UNITARIAS
 _________________________________________________________________________________________
 
+Test que sea a nivel de controller es un test de integracion casi siempre
+Test que sea a nivel de service o repository es un test unitario
+
 40) para hacer pruebas agregamos a pom.xml:
 
 
@@ -487,6 +490,34 @@ ________________________________________________________________________________
                 <version>4.0.0</version>
                 <scope>test</scope>
             </dependency>
+
+
+En el classTest le hacemos @Mock a lo que en la clase a testear lleve @Autowired
+
+Solo en Controller:
+MockMvc, que es una herramienta de Spring para probar controladores web.
+Te permite simular llamadas HTTP y verificar las respuestas sin necesidad
+de arrancar un servidor web completo.
+
+--------------------------------------------------------
+Test en repository
+
+Para este test necesitamos un archivo application-test.properties, un archivo schema.sql donde
+tenemos definidas todas las tablas de la DB.
+
+Para hacer test en repository se debe usar la base de datos H2.descargamos el zip de la web oficial:
+https://www.h2database.com/html/download.html,
+en la terminal navegamos hasta la carpeta donde se encuentra el archivo h2-2.2.224.jar o h2*.jar.
+ejecutamos el comando : java -jar h2-2.2.224.jar lo cual levanta el servidor de H2.
+
+a la consola de H2 se accede con esta url: http://localhost:8080/h2-console, o tambien :
+http://localhost:8082
+
+en esta consola verificamos que la URL , user y password sean iguales a lo que tenemos en
+application-test.properties y le damos en test connection. cuando nos confirme que el test
+connection es exitoso , ya podemos realizar la prueba.
+
+
 
 
 
@@ -566,6 +597,88 @@ metodo.en este caso habria que reemplazar todo lo que se relacione con Employee 
 de la app que estemos trabajando.
 
 Por ultimo la class JwtValidationFilter se copia y se pega sin cambiar nada.(hasta aqui vamos en el paso 23)
+
+
+
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+contenido del archivo schema.sql:
+
+
+CREATE TABLE IF NOT EXISTS address (
+    address_id int AUTO_INCREMENT PRIMARY KEY,
+    number VARCHAR(255),
+    street VARCHAR(255),
+    zipcode VARCHAR(255)
+);
+
+
+CREATE TABLE IF NOT EXISTS company (
+    company_id int AUTO_INCREMENT PRIMARY KEY,
+    country VARCHAR(255),
+    company_name VARCHAR(255),
+    address_int_id int,
+    FOREIGN KEY (address_int_id) REFERENCES address(address_id)
+);
+
+CREATE TABLE IF NOT EXISTS department (
+    department_id int AUTO_INCREMENT PRIMARY KEY,
+    deparment_name VARCHAR(255),
+    company_company_id int,
+    FOREIGN KEY (company_company_id) REFERENCES company(company_id)
+);
+
+CREATE TABLE IF NOT EXISTS role (
+    id_role BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255)
+);
+
+CREATE TABLE IF NOT EXISTS employee (
+    id_employee BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255),
+    lastname VARCHAR(255),
+    email VARCHAR(255),
+    username VARCHAR(255),
+    password VARCHAR(255),
+    address_int_id int,
+    department_department_id int,
+    FOREIGN KEY (address_int_id) REFERENCES address(address_id),
+    FOREIGN KEY (department_department_id) REFERENCES department(department_id)
+);
+
+CREATE TABLE IF NOT EXISTS employee_seq (
+    next_val BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS employees_roles (
+    id_employee BIGINT,
+    id_role BIGINT
+);
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+contenido del archivo application-test.properties:
+
+#H2 database only for testing
+
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=password
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+spring.jpa.hibernate.ddl-auto=create-drop
+spring.h2.console.enabled=true
+
+spring.jpa.defer-datasource-initialization=true
+
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+
 
 
 

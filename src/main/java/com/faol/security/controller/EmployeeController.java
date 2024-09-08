@@ -4,7 +4,6 @@ import com.faol.security.dto.EmployeeDTO;
 import com.faol.security.dto.mapper.EmployeeDTOMapper;
 import com.faol.security.entity.Employee;
 import com.faol.security.exceptions.ErrorDetails;
-import com.faol.security.exceptions.FieldValidationException;
 import com.faol.security.exceptions.HandlerExceptionController;
 import com.faol.security.exceptions.IllegalArgumentException;
 import com.faol.security.exceptions.ResourceNotFoundException;
@@ -13,22 +12,25 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+@CrossOrigin(origins = "http://localhost:4321") //para abrir con astro
 @RestController
 @RequestMapping("/employee")
+@SuppressWarnings("unused")
 public class EmployeeController {
 
     @Autowired
     EmployeeServiceInt service;
 
+
     @GetMapping("/get_all")
     public ResponseEntity<?> getAllEmployees() {
+    //public ResponseEntity<Map<String, Object>> getAllEmployees() {
 
         try{
 
@@ -36,12 +38,13 @@ public class EmployeeController {
             List<EmployeeDTO> result = service.getAllEmployees();
 
             response.put("message", "List ok");
-            response.put("employeesDTO list", result);
+            response.put("employeeDTOList", result);
             return ResponseEntity.status(HttpStatus.OK).body(response);
 
         }catch (ResourceNotFoundException ex){
             ResponseEntity<ErrorDetails> errorResponse = HandlerExceptionController.handleResourceNotFoundException(ex);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+
         }
 
     }
@@ -98,7 +101,7 @@ public class EmployeeController {
 
         try {
             EmployeeDTO employeeDTO1 = service.updateEmployee(employee, id);
-            response.put("message", "employee updated successful");
+            response.put("message", "employee updated successfully");
             response.put("employeeDTO", employeeDTO1);
             return ResponseEntity.status(HttpStatus.OK).body(response);
 

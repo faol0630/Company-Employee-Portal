@@ -35,6 +35,7 @@ class ErrorDetailsTest {
         assertEquals("Mensaje", message);
         assertInstanceOf(String.class, message);
         assertNotNull(message);
+        assertDoesNotThrow( () -> errorDetails.getMessage());
     }
 
     @Test
@@ -43,6 +44,7 @@ class ErrorDetailsTest {
         assertEquals("Error", error);
         assertInstanceOf(String.class, error);
         assertNotNull(error);
+        assertDoesNotThrow( () -> errorDetails.getError());
     }
 
     @Test
@@ -57,6 +59,7 @@ class ErrorDetailsTest {
         assertNotNull(message);
         assertEquals("Mensaje", message);
         assertInstanceOf(String.class, message);
+        assertDoesNotThrow( () -> errorDetails.setMessage("Mensaje"));
     }
 
     @Test
@@ -64,6 +67,7 @@ class ErrorDetailsTest {
         assertNotNull(error);
         assertEquals("Error", error);
         assertInstanceOf(String.class, error);
+        assertDoesNotThrow( () -> errorDetails.setError("Error"));
     }
 
     @Test
@@ -84,5 +88,36 @@ class ErrorDetailsTest {
         assertNotNull(errorDetails1);
         assertInstanceOf(ErrorDetails.class, errorDetails1);
 
+    }
+
+    @Test
+    void testToString() {
+
+        String result = errorDetails.toString();
+        String expected = "ErrorDetails{" +
+                "message='" + message + '\'' +
+                ", error='" + error + '\'' +
+                ", date=" + date +
+                '}';
+
+        assertEquals(expected, result);
+    }
+
+
+    @Test
+    void errorDetailsBuilderToStringTest() {
+
+        ErrorDetails.ErrorDetailsBuilder builder = ErrorDetails.builder()
+                .error("Error")
+                .date(new Date())
+                .message("something unexpected has happened");
+
+        String errorDetailsToString = builder.toString();
+
+        Assertions.assertAll(
+                () -> assertDoesNotThrow( () -> builder.error("Error")),
+                () -> assertInstanceOf(ErrorDetails.ErrorDetailsBuilder.class, builder),
+                () -> assertNotNull(errorDetailsToString)
+        );
     }
 }

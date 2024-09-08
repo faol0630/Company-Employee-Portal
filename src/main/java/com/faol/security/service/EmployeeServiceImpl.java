@@ -6,7 +6,6 @@ import com.faol.security.dto.mapper.EmployeeDTOMapper;
 import com.faol.security.entity.Employee;
 import com.faol.security.entity.Role;
 import com.faol.security.exceptions.FieldValidationException;
-import com.faol.security.exceptions.IllegalArgumentException;
 import com.faol.security.exceptions.ResourceNotFoundException;
 import com.faol.security.repository.EmployeeRepo;
 import com.faol.security.repository.RoleRepository;
@@ -97,7 +96,7 @@ public class EmployeeServiceImpl implements EmployeeServiceInt {
 
         Optional<Employee> founded = employeeRepo.findById(id_employee);
 
-        if (founded.isPresent()) { //evaluar este if a ver si con eso se evalua todo lo de dentro??????
+        if (founded.isPresent()) {
 
             Employee updatedEmployee = Employee.builder()
                     .id_employee(id_employee)
@@ -106,6 +105,8 @@ public class EmployeeServiceImpl implements EmployeeServiceInt {
                     .email(employee.getEmail())
                     .username(employee.getUsername())
                     .password(passwordEncoder.encode(employee.getPassword()))
+                    .address(employee.getAddress())
+                    .department(employee.getDepartment())
                     .build();
 
             Employee employeeToSave = employeeRepo.save(updatedEmployee);

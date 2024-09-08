@@ -3,6 +3,11 @@ package com.faol.security.dto.mapper;
 import com.faol.security.dto.EmployeeDTO;
 import com.faol.security.entity.Employee;
 
+
+/**
+ * Clase que contiene un metodo el cual crea un EmployeDTO a partir de un entity Employee
+ * pasado como parametro
+ */
 public class EmployeeDTOMapper {
 
     //patron builder (sin usar lombok)
@@ -30,6 +35,11 @@ public class EmployeeDTOMapper {
     }
 
     //6) metodo que devuelve un DTO:
+
+    /**
+     * Metodo que crea un EmployeeDTO a partir de un entity Employee
+     * @return
+     */
     public EmployeeDTO build(){
 
         if (employee == null){
@@ -37,12 +47,15 @@ public class EmployeeDTOMapper {
             throw new IllegalArgumentException("You must pass the entity as a parameter");
         }
 
-        EmployeeDTO employeeDTO = new EmployeeDTO();
-        employeeDTO.setId_employee(employee.getId_employee());
-        employeeDTO.setName(employee.getName());
-        employeeDTO.setLastname(employee.getLastname());
-        employeeDTO.setEmail(employee.getEmail());
-        employeeDTO.setUsername(employee.getUsername());
+        EmployeeDTO employeeDTO = EmployeeDTO.builder()
+                .id_employee(employee.getId_employee())
+                .name(employee.getName())
+                .lastname(employee.getLastname())
+                .email(employee.getEmail())
+                .username(employee.getUsername())
+                .address(employee.getAddress())
+                .department(employee.getDepartment())
+                .build();
 
         return employeeDTO;
     }

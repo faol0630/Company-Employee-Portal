@@ -7,6 +7,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+
+/**
+ * Repositorio del Entity Role
+ */
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long> {
 

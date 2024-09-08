@@ -1,6 +1,7 @@
 package com.faol.security.entity;
 
 import com.mysql.cj.x.protobuf.MysqlxDatatypes;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,9 +15,26 @@ class EmployeeTest {
     List<Role> roles;
     Employee employee;
     Employee employeeB;
+    Department department;
+    Address address;
 
     @BeforeEach
-    void init(){
+    void init() {
+
+        address = Address.builder()
+                .address_id(53664)
+                .number("4")
+                .street("Balcones")
+                .zipcode("64758")
+                .build();
+
+        department = Department.builder()
+                .department_id(35224)
+                .deparment_name("Varios")
+                .company(new Company())
+                .employeeList(new ArrayList<>())
+                .build();
+
         roles = new ArrayList<>();
 
         Role role1 = new Role();
@@ -40,6 +58,8 @@ class EmployeeTest {
                 .password("12345")
                 .email("aliciasaa3421@net.com")
                 .roles(roles)
+                .department(department)
+                .address(address)
                 .build();
 
     }
@@ -51,9 +71,14 @@ class EmployeeTest {
         //when
         List<Role> result = employee.getRoles();
         //then
-        assertNotNull(result);
-        assertEquals(roles, result);
-        assertInstanceOf(java.util.ArrayList.class, result);
+
+        Assertions.assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals(roles, result),
+                () -> assertInstanceOf(java.util.ArrayList.class, result),
+                () -> assertDoesNotThrow(() -> employee.setRoles(roles))
+        );
+
     }
 
     @Test
@@ -63,9 +88,14 @@ class EmployeeTest {
         //when
         employee.setId_employee(id);
         //then
-        assertNotNull(employee.getId_employee());
-        assertEquals(id, employee.getId_employee());
-        assertInstanceOf(Long.class, employee.getId_employee());
+
+        Assertions.assertAll(
+                () -> assertNotNull(employee.getId_employee()),
+                () -> assertEquals(id, employee.getId_employee()),
+                () -> assertInstanceOf(Long.class, employee.getId_employee()),
+                () -> assertDoesNotThrow(() -> employee.setId_employee(id))
+        );
+
     }
 
     @Test
@@ -75,9 +105,13 @@ class EmployeeTest {
         //when
         employee.setName(name);
         //then
-        assertNotNull(employee.getName());
-        assertEquals(name, employee.getName());
-        assertInstanceOf(String.class, employee.getName());
+        Assertions.assertAll(
+                () -> assertNotNull(employee.getName()),
+                () -> assertEquals(name, employee.getName()),
+                () -> assertInstanceOf(String.class, employee.getName()),
+                () -> assertDoesNotThrow(() -> employee.setName(name))
+        );
+
     }
 
     @Test
@@ -87,9 +121,14 @@ class EmployeeTest {
         //when
         employee.setLastname(lastname);
         //then
-        assertNotNull(employee.getLastname());
-        assertEquals(lastname, employee.getLastname());
-        assertInstanceOf(String.class, employee.getLastname());
+
+        Assertions.assertAll(
+                () -> assertNotNull(employee.getLastname()),
+                () -> assertEquals(lastname, employee.getLastname()),
+                () -> assertInstanceOf(String.class, employee.getLastname()),
+                () -> assertDoesNotThrow(() -> employee.setLastname(lastname))
+        );
+
     }
 
     @Test
@@ -99,9 +138,14 @@ class EmployeeTest {
         //when
         employee.setEmail(email);
         //then
-        assertNotNull(employee.getEmail());
-        assertEquals(email, employee.getEmail());
-        assertInstanceOf(String.class, employee.getEmail());
+
+        Assertions.assertAll(
+                () -> assertNotNull(employee.getEmail()),
+                () -> assertEquals(email, employee.getEmail()),
+                () -> assertInstanceOf(String.class, employee.getEmail()),
+                () -> assertDoesNotThrow(() -> employee.setEmail(email))
+        );
+
     }
 
     @Test
@@ -111,37 +155,112 @@ class EmployeeTest {
         //when
         employee.setUsername(username);
         //then
-        assertNotNull(employee.getUsername());
-        assertEquals(username, employee.getUsername());
-        assertInstanceOf(String.class, employee.getUsername());
+
+        Assertions.assertAll(
+                () -> assertNotNull(employee.getUsername()),
+                () -> assertEquals(username, employee.getUsername()),
+                () -> assertInstanceOf(String.class, employee.getUsername()),
+                () -> assertDoesNotThrow(() -> employee.setUsername(username))
+        );
+
     }
 
     @Test
-    void EmployeeBuilderTest(){
+    void setAddress() {
+        //given (dentro del metodo init)
+
+        //when
+        employee.setAddress(address);
+        //then
+
+        Assertions.assertAll(
+                () -> assertNotNull(employee.getAddress()),
+                () -> assertEquals(address, employee.getAddress()),
+                () -> assertInstanceOf(Address.class, employee.getAddress()),
+                () -> assertDoesNotThrow(() -> employee.setAddress(address))
+        );
+
+
+    }
+
+    @Test
+    void setDepartment() {
+        //given(dentro del metodo init)
+
+        //when
+        employee.setDepartment(department);
+        //then
+        Assertions.assertAll(
+                () -> assertNotNull(employee.getDepartment()),
+                () -> assertEquals(department, employee.getDepartment()),
+                () -> assertInstanceOf(Department.class, employee.getDepartment()),
+                () -> assertDoesNotThrow(() -> employee.setDepartment(department))
+        );
+
+
+    }
+
+    @Test
+    void employeeBuilderTest() {
         //given
         //when
         //then
-        assertNotNull(employeeB);
-        assertInstanceOf(Employee.class, employeeB);
-        assertEquals(roles, employeeB.getRoles());
+
+        Assertions.assertAll(
+                () -> assertNotNull(employeeB),
+                () -> assertInstanceOf(Employee.class, employeeB),
+                () -> assertEquals(roles, employeeB.getRoles())
+        );
+
 
     }
 
     @Test
-    void toStringTest(){
-
-        String employeeString = "Employee{" +
+    void toStringTest() {
+        //given(dentro del metodo init)
+        String result = employeeB.toString();
+        String expected = "Employee{" +
                 "id_employee=" + employeeB.getId_employee() +
                 ", name='" + employeeB.getName() + '\'' +
                 ", lastname='" + employeeB.getLastname() + '\'' +
                 ", email='" + employeeB.getEmail() + '\'' +
                 ", username='" + employeeB.getUsername() + '\'' +
                 ", password='" + employeeB.getPassword() + '\'' +
+                //", department=" + department +
                 ", roles=" + roles +
+                ", address=" + address +
                 '}';
 
-        assertNotNull(employee);
-        assertEquals(employeeB.toString(), employeeString);
-        assertInstanceOf(String.class, employeeB.toString());
+        Assertions.assertAll(
+                () -> assertNotNull(employeeB),
+                () -> assertEquals(expected, result),
+                () -> assertInstanceOf(String.class, employeeB.toString())
+        );
+
     }
+
+    @Test
+    void employeeBuilderToStringTest(){
+
+        Employee.EmployeeBuilder builder = Employee.builder()
+                .id_employee(342511L)
+                .name("Pedro")
+                .lastname("Saa")
+                .email("pedrito12@mail.net")
+                .username("pedro")
+                .password("12345")
+                .address(new Address())
+                .department(new Department())
+                .roles(new ArrayList<>());
+
+        String builderToString = builder.toString();
+
+        Assertions.assertAll(
+                () -> assertDoesNotThrow( () -> builder.lastname("Saa")),
+                () -> assertInstanceOf( Employee.EmployeeBuilder.class, builder),
+                () -> assertNotNull(builderToString)
+        );
+
+    }
+
 }

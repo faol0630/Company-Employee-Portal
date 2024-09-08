@@ -1,13 +1,17 @@
 package com.faol.security.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.util.List;
 
+/**
+ * Entity Employee con atributos, getters, setters, toString sobreescrito, constructor vacio
+ * constructor con argumentos y builder
+ */
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -37,6 +41,10 @@ public class Employee {
     @NotNull(message = "password must not be null")
     private String password;
 
+    @JsonBackReference //para evitar bucles infinitos
+    @ManyToOne(targetEntity = Department.class)
+    private Department department;
+
     @ManyToMany
     @JoinTable(name = "employees_roles",
             joinColumns = @JoinColumn(name = "id_employee"), //esta tabla
@@ -44,6 +52,10 @@ public class Employee {
             uniqueConstraints = { @UniqueConstraint(columnNames = { "id_employee", "id_role"})}
     )
     private List<Role> roles;
+
+    @OneToOne(targetEntity = Address.class, cascade = CascadeType.ALL)
+    @JoinColumn(name = "address_int_id")
+    private Address address;
 
     @Override
     public String toString() {
@@ -54,7 +66,9 @@ public class Employee {
                 ", email='" + email + '\'' +
                 ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
+                //", department=" + department + quitar para evitar bucle infinito donde sea bidireccional
                 ", roles=" + roles +
+                ", address=" + address +
                 '}';
     }
 }
