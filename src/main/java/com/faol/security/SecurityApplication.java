@@ -3,11 +3,6 @@ package com.faol.security;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-
-import javax.swing.*;
 
 @SpringBootApplication
 public class SecurityApplication implements CommandLineRunner {
@@ -19,8 +14,13 @@ public class SecurityApplication implements CommandLineRunner {
 			System.out.println("parameter not found");
 		}
 		//for test:
-		String params = args[0];
-		SpringApplication.run(SecurityApplication.class, params);
+		try{
+			String params = args[0];
+			SpringApplication.run(SecurityApplication.class, params);
+		}catch (ArrayIndexOutOfBoundsException e){
+			System.out.println(e.getMessage()); //Index 0 out of bounds for length 0
+		}
+
 	}
 
 	@Override

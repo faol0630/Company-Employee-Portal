@@ -1,6 +1,5 @@
 package com.faol.security.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -41,7 +40,7 @@ public class Employee {
     @NotNull(message = "password must not be null")
     private String password;
 
-    @JsonBackReference //para evitar bucles infinitos
+    //@JsonBackReference //para evitar bucles infinitos
     @ManyToOne(targetEntity = Department.class)
     private Department department;
 
@@ -57,7 +56,7 @@ public class Employee {
     @JoinColumn(name = "address_int_id")
     private Address address;
 
-    @Override
+    /*@Override
     public String toString() {
         return "Employee{" +
                 "id_employee=" + id_employee +
@@ -70,5 +69,5 @@ public class Employee {
                 ", roles=" + roles +
                 ", address=" + address +
                 '}';
-    }
+    }*/
 }

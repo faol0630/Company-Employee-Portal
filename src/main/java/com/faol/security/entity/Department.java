@@ -1,7 +1,5 @@
 package com.faol.security.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -29,15 +27,15 @@ public class Department {
     private String deparment_name;
 
     //entity dueña de la relacion:
-    @JsonManagedReference //para evitar bucles infinitos
+    //@JsonManagedReference //para evitar bucles infinitos
     @OneToMany(targetEntity = Employee.class, fetch = FetchType.LAZY, mappedBy = "department")
     private List<Employee> employeeList;
 
-    @JsonBackReference //para evitar bucles infinitos
+    //@JsonBackReference //para evitar bucles infinitos
     @ManyToOne(targetEntity = Company.class)
     private Company company;
 
-    @Override
+    /*@Override
     public String toString() {
         return "Department{" +
                 "department_id=" + department_id +
@@ -45,5 +43,5 @@ public class Department {
                 //", employeeList=" + employeeList + quitar para evitar bucle infinito donde sea bidireccional
                 //", company=" + company + quitar para evitar bucle infinito donde sea bidireccional
                 '}';
-    }
+    }*/
 }

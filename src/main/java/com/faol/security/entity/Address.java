@@ -32,7 +32,7 @@ public class Address {
     @NotNull(message = "zipcode cannot be null")
     private String zipcode;
 
-    @Override
+    /*@Override
     public String toString() {
         return "Address{" +
                 "address_id=" + address_id +
@@ -40,5 +40,5 @@ public class Address {
                 ", number='" + number + '\'' +
                 ", zipcode='" + zipcode + '\'' +
                 '}';
-    }
+    }*/
 }

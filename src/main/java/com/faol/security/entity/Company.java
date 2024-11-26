@@ -1,6 +1,5 @@
 package com.faol.security.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -31,7 +30,7 @@ public class Company {
     private String country;
 
     //entity dueña de la relacion:
-    @JsonManagedReference //para evitar bucles infinitos
+    //@JsonManagedReference //para evitar bucles infinitos
     @OneToMany(targetEntity = Department.class, fetch = FetchType.LAZY, mappedBy = "company")
     private List<Department> departmentList;
 
@@ -39,7 +38,7 @@ public class Company {
     @JoinColumn(name = "address_int_id")
     private Address address;
 
-    @Override
+    /*@Override
     public String toString() {
         return "Company{" +
                 "company_id=" + company_id +
@@ -48,5 +47,5 @@ public class Company {
                 //", departmentList=" + departmentList + quitar para evitar bucle infinito donde sea bidireccional
                 ", address=" + address +
                 '}';
-    }
+    }*/
 }
